@@ -91,9 +91,45 @@ and not much else.
     },
     "workdir": "/workspace",
     "network": "none"
-  },
+  }
 }
 ```
+
+Or let's take [Claude Code](https://code.claude.com/docs/en/overview).
+We mount the current working directory as well as the config directory
+and the data directory (we can even fix the missed opportunity of
+adhering to the XDG Desktop Standard):
+
+``` json
+{
+  "claude": {
+    "tool": "npm:@anthropic-ai/claude-code",
+    "command": "claude",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.local/share/claude",
+        "dst": "/root/.claude"
+      },
+      {
+        "src": "~/.config/claude",
+        "dst": "/root/.config/claude"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "ANTHROPIC_API_KEY"
+    ],
+    "workdir": "/workspace"
+  }
+}
+```
+
+Now tell it to use `mise` for running all kinds of dev tools in your
+`CLAUDE.md`.
 
 See `config.sample.json` for more examples.
 
