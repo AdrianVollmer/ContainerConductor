@@ -1,0 +1,157 @@
+{
+  "typst": {
+    "tool": "cargo:typst-cli",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.local/share/typst",
+        "dst": "/root/.local/share/typst"
+      },
+      {
+        "src": "~/.cache/typst",
+        "dst": "/root/.cache/typst"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "env": {},
+    "ports": [],
+    "workdir": "/workspace",
+    "network": "none"
+  },
+  "node": {
+    "tool": "node@lts",
+    "command": "node",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.npm",
+        "dst": "/root/.npm"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "NODE_ENV"
+    ],
+    "env": {
+      "NPM_CONFIG_PREFIX": "/root/.npm-global"
+    },
+    "ports": [
+      "3000:3000"
+    ],
+    "workdir": "/workspace"
+  },
+  "eslint": {
+    "tool": "npm:eslint",
+    "command": "eslint",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "NODE_ENV"
+    ],
+    "env": {
+      "NPM_CONFIG_PREFIX": "/root/.npm-global"
+    },
+    "workdir": "/workspace"
+  },
+  "python3": {
+    "tool": "python@3",
+    "command": "python3",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.cache/pip",
+        "dst": "/root/.cache/pip"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "PYTHONDONTWRITEBYTECODE"
+    ],
+    "env": {},
+    "ports": [],
+    "workdir": "/workspace"
+  },
+  "rg": {
+    "tool": "cargo:ripgrep",
+    "command": "rg",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace",
+        "opts": "ro"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none",
+    "workdir": "/workspace"
+  },
+  "cargo": {
+    "tool": "rust",
+    "command": "cargo",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.cargo/registry",
+        "dst": "/usr/local/cargo/registry"
+      },
+      {
+        "src": "~/.cargo/git",
+        "dst": "/usr/local/cargo/git"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "RUST_BACKTRACE",
+      "RUST_LOG"
+    ],
+    "workdir": "/workspace"
+  },
+  "go": {
+    "tool": "go",
+    "command": "go",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/go/pkg",
+        "dst": "/root/go/pkg"
+      },
+      {
+        "src": "~/.cache/go-build",
+        "dst": "/root/.cache/go-build"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "GOPROXY",
+      "GOPRIVATE"
+    ],
+    "env": {
+      "GOPATH": "/root/go"
+    },
+    "workdir": "/workspace"
+  }
+}

@@ -1,6 +1,6 @@
 # Container Conductor
 
-A single bash script for running isolated tools based on mise.
+A single bash script for running isolated tools via mise.
 
 ## Motivation
 
@@ -29,6 +29,30 @@ else in your search path.
 - bash
 - podman or docker
 - jq
+
+## Usage
+
+Run `coco help` to learn more:
+
+``` console
+$ coco help
+Usage: coco <command> [args...]
+
+Commands:
+  run <tool> [args...]   Run a tool in a container
+  list                   List all configured tools
+  up                     Create symlinks for all tools
+  down                   Remove symlinks for all tools
+  prune                  Remove mise cache volumes
+
+Symlink invocation:
+  <tool> [args...]       Run via symlink (after 'up')
+
+Environment:
+  COCO_RUNTIME        Container runtime: podman (default) or docker
+  COCO_DEBUG          Enable debug output (set to 'true' or '1')
+  COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
+```
 
 ## Configuration
 
@@ -69,6 +93,8 @@ and not much else.
   },
 }
 ```
+
+See `config.sample.json` for more examples.
 
 ## License
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#  A single shell script for running isolated tools based on mise.
+#  A single bash script for running isolated tools via mise.
 #  https://github.com/AdrianVollmer/ContainerConductor
 #  MIT Licensed
 
