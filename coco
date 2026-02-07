@@ -5,6 +5,9 @@ PRODUCT="coco"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$PRODUCT"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
+# Container runtime: "podman" (default) or "docker"
+COCO_RUNTIME="${COCO_RUNTIME:-podman}"
+
 # Populated by parse_args and load_config
 TOOL_NAME=""
 TOOL_CONFIG=""
@@ -55,6 +58,14 @@ parse_args() {
 
 check_dependencies() {
 	command -v jq &>/dev/null || die "jq is required but not installed"
+
+	case "$COCO_RUNTIME" in
+	podman | docker) ;;
+	*) die "COCO_RUNTIME must be 'podman' or 'docker', got '$COCO_RUNTIME'" ;;
+	esac
+
+	command -v "$COCO_RUNTIME" &>/dev/null ||
+		die "$COCO_RUNTIME is required but not installed"
 }
 
 load_config() {
@@ -186,7 +197,7 @@ main() {
 	mise_tool="$(cfg '.tool')"
 	cmd="${command:-$TOOL_NAME}"
 
-	exec podman "${PODMAN_ARGS[@]}" "$image" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
+	exec "$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$image" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
 }
 
 main "$@"
