@@ -8,11 +8,11 @@ CONFIG_FILE="$CONFIG_DIR/config.json"
 # Container runtime: "podman" (default) or "docker"
 COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 
-# Populated by parse_args and load_config
+# Populated by run_tool and load_config
 TOOL_NAME=""
 TOOL_CONFIG=""
 
-# Accumulated podman arguments
+# Accumulated container runtime arguments
 PODMAN_ARGS=()
 
 # =============================================================================
@@ -32,29 +32,17 @@ cfg_array() {
 	echo "$TOOL_CONFIG" | jq -r "$1"
 }
 
+require_config() {
+	[[ -f "$CONFIG_FILE" ]] || die "config not found: $CONFIG_FILE"
+}
+
+list_tools() {
+	jq -r 'keys[]' "$CONFIG_FILE"
+}
+
 # =============================================================================
 # Initialization
 # =============================================================================
-
-parse_args() {
-	local script_name
-	script_name="$(basename "$0")"
-
-	if [[ "$script_name" == "$PRODUCT" ]]; then
-		if [[ $# -lt 1 ]]; then
-			echo "Usage: $PRODUCT <tool> [args...]" >&2
-			echo "       or symlink $PRODUCT as <tool> and invoke directly" >&2
-			exit 1
-		fi
-		TOOL_NAME="$1"
-		shift
-	else
-		TOOL_NAME="$script_name"
-	fi
-
-	# Return remaining args via global REMAINING_ARGS
-	REMAINING_ARGS=("$@")
-}
 
 check_dependencies() {
 	command -v jq &>/dev/null || die "jq is required but not installed"
@@ -94,6 +82,7 @@ add_mise_volumes() {
 		-v mise_downloads:/mise/downloads
 		-v mise_shims:/mise/shims
 		-v mise_cache:/mise/cache
+		-v cargo_home:/usr/local/cargo
 	)
 }
 
@@ -181,14 +170,97 @@ build_podman_args() {
 }
 
 # =============================================================================
-# Main
+# Management commands
 # =============================================================================
 
-main() {
-	parse_args "$@"
+cmd_list() {
+	require_config
+	list_tools
+}
+
+cmd_up() {
+	require_config
+
+	local coco_path bin_dir tool
+	coco_path="$(realpath "$0")"
+	bin_dir="$HOME/.local/bin"
+
+	mkdir -p "$bin_dir"
+
+	for tool in $(list_tools); do
+		local link_path="$bin_dir/$tool"
+		if [[ -L "$link_path" ]]; then
+			echo "exists: $tool"
+		elif [[ -e "$link_path" ]]; then
+			echo "skip: $tool (file exists and is not a symlink)"
+		else
+			ln -s "$coco_path" "$link_path"
+			echo "created: $tool -> $coco_path"
+		fi
+	done
+}
+
+cmd_down() {
+	require_config
+
+	local bin_dir tool
+	bin_dir="$HOME/.local/bin"
+
+	for tool in $(list_tools); do
+		local link_path="$bin_dir/$tool"
+		if [[ -L "$link_path" ]]; then
+			rm "$link_path"
+			echo "removed: $tool"
+		elif [[ -e "$link_path" ]]; then
+			echo "skip: $tool (exists but is not a symlink)"
+		else
+			echo "skip: $tool (not found)"
+		fi
+	done
+}
+
+cmd_prune() {
+	local volumes=(mise_installs mise_downloads mise_shims mise_cache cargo_home)
+	echo "Removing cache volumes..."
+	for vol in "${volumes[@]}"; do
+		if "$COCO_RUNTIME" volume rm "$vol" 2>/dev/null; then
+			echo "removed: $vol"
+		else
+			echo "skip: $vol (not found or in use)"
+		fi
+	done
+}
+
+cmd_help() {
+	cat <<-EOF
+		Usage: $PRODUCT <command> [args...]
+
+		Commands:
+		  run <tool> [args...]   Run a tool in a container
+		  list                   List all configured tools
+		  up                     Create symlinks for all tools
+		  down                   Remove symlinks for all tools
+		  prune                  Remove mise cache volumes
+
+		Symlink invocation:
+		  <tool> [args...]       Run via symlink (after 'up')
+
+		Environment:
+		  COCO_RUNTIME   Container runtime: podman (default) or docker
+	EOF
+}
+
+# =============================================================================
+# Tool execution
+# =============================================================================
+
+run_tool() {
+	TOOL_NAME="$1"
+	shift
+	REMAINING_ARGS=("$@")
+
 	check_dependencies
 	load_config
-
 	build_podman_args
 
 	local image command mise_tool cmd
@@ -198,6 +270,43 @@ main() {
 	cmd="${command:-$TOOL_NAME}"
 
 	exec "$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$image" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+main() {
+	local script_name
+	script_name="$(basename "$0")"
+
+	# Symlink invocation: run as tool directly
+	if [[ "$script_name" != "$PRODUCT" ]]; then
+		run_tool "$script_name" "$@"
+		return
+	fi
+
+	# Direct invocation: parse command
+	if [[ $# -lt 1 ]]; then
+		cmd_help
+		exit 1
+	fi
+
+	local cmd="$1"
+	shift
+
+	case "$cmd" in
+	run)
+		[[ $# -lt 1 ]] && die "usage: $PRODUCT run <tool> [args...]"
+		run_tool "$@"
+		;;
+	list) cmd_list ;;
+	up) cmd_up ;;
+	down) cmd_down ;;
+	prune) cmd_prune ;;
+	help | --help | -h) cmd_help ;;
+	*) die "unknown command: $cmd (see '$PRODUCT help')" ;;
+	esac
 }
 
 main "$@"
