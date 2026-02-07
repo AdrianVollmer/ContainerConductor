@@ -1,6 +1,6 @@
 # Container Conductor
 
-A single bash script for running isolated tools via mise.
+Sandboxed execution for untrusted dev tools in one script.
 
 ## Motivation
 
