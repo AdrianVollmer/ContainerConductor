@@ -59,8 +59,8 @@ Environment:
 Each tool must be configured in `$HOME/.config/coco/config.json` (or
 `$XDG_CONFIG_HOME`).
 
-To manage the tools, call `coco` directly. To run tools via coco, create
-a symlink with the tools name to the coco executable in
+To manage the tools, call `coco` directly. To run tools via `coco`,
+create a symlink with the tool's name to the `coco` executable in
 `$HOME/.local/bin`.
 
 `coco up` will create a symlink for each tool to `coco`.
