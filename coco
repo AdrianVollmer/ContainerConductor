@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
+#  A single shell script for running isolated tools based on mise.
+#  https://github.com/AdrianVollmer/ContainerConductor
+#  MIT Licensed
+
 set -euo pipefail
+
+if [[ "${COCO_DEBUG:-}" == "true" || "${COCO_DEBUG:-}" == "1" ]]; then
+	set -x
+fi
 
 PRODUCT="coco"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$PRODUCT"
@@ -89,7 +97,9 @@ add_mise_volumes() {
 add_network() {
 	local network
 	network="$(cfg '.network // empty')"
-	[[ -n "$network" ]] && PODMAN_ARGS+=(--network "$network")
+	if [[ -n "$network" ]]; then
+		PODMAN_ARGS+=(--network "$network")
+	fi
 }
 
 add_mounts() {
@@ -103,11 +113,15 @@ add_mounts() {
 
 		# Expand ~ and . in source path
 		src="${src/#\~/$HOME}"
-		[[ "$src" == "." ]] && src="$PWD"
+		if [[ "$src" == "." ]]; then
+			src="$PWD"
+		fi
 		src="$(realpath -m "$src")"
 
 		# Create host dir if it doesn't exist (avoid podman creating it as root)
-		[[ ! -e "$src" ]] && mkdir -p "$src"
+		if [[ ! -e "$src" ]]; then
+			mkdir -p "$src"
+		fi
 
 		if [[ -n "$opts" ]]; then
 			PODMAN_ARGS+=(-v "$src:$dst:$opts")
@@ -247,6 +261,7 @@ cmd_help() {
 
 		Environment:
 		  COCO_RUNTIME   Container runtime: podman (default) or docker
+		  COCO_DEBUG     Enable debug output (set to 'true' or '1')
 	EOF
 }
 
@@ -297,7 +312,9 @@ main() {
 
 	case "$cmd" in
 	run)
-		[[ $# -lt 1 ]] && die "usage: $PRODUCT run <tool> [args...]"
+		if [[ $# -lt 1 ]]; then
+			die "usage: $PRODUCT run <tool> [args...]"
+		fi
 		run_tool "$@"
 		;;
 	list) cmd_list ;;
