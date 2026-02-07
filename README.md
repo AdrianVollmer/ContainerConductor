@@ -24,7 +24,7 @@ files they need.
 Copy or symlink the `coco` executable to `~/.local/bin` or somewhere
 else in your search path.
 
-*Dependencies*:
+**Dependencies**:
 
 - bash
 - podman or docker
