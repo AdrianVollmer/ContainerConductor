@@ -56,7 +56,8 @@ Environment:
 
 ## Configuration
 
-Each tool must be configured in `$XDG_CONFIG_HOME/coco/config.json`.
+Each tool must be configured in `$HOME/.config/coco/config.json` (or
+`$XDG_CONFIG_HOME`).
 
 To manage the tools, call `coco` directly. To run tools via coco, create
 a symlink with the tools name to the coco executable in
