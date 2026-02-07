@@ -125,6 +125,11 @@ add_mise_volumes() {
 }
 
 add_network() {
+	# Allow temporary network access override
+	if [[ "${COCO_ALLOW_NETWORK:-}" == "true" || "${COCO_ALLOW_NETWORK:-}" == "1" ]]; then
+		return
+	fi
+
 	local network
 	network="$(cfg '.network // empty')"
 	if [[ -n "$network" ]]; then
@@ -290,8 +295,9 @@ cmd_help() {
 		  <tool> [args...]       Run via symlink (after 'up')
 
 		Environment:
-		  COCO_RUNTIME   Container runtime: podman (default) or docker
-		  COCO_DEBUG     Enable debug output (set to 'true' or '1')
+		  COCO_RUNTIME        Container runtime: podman (default) or docker
+		  COCO_DEBUG          Enable debug output (set to 'true' or '1')
+		  COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
 	EOF
 }
 
