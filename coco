@@ -12,6 +12,7 @@ fi
 PRODUCT="coco"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$PRODUCT"
 CONFIG_FILE="$CONFIG_DIR/config.json"
+CONFIG_D_DIR="$CONFIG_DIR/config.d"
 
 # Container runtime: "podman" (default) or "docker"
 COCO_RUNTIME="${COCO_RUNTIME:-podman}"
@@ -19,6 +20,7 @@ COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 # Populated by run_tool and load_config
 TOOL_NAME=""
 TOOL_CONFIG=""
+MERGED_CONFIG=""
 
 # Accumulated container runtime arguments
 PODMAN_ARGS=()
@@ -40,12 +42,40 @@ cfg_array() {
 	echo "$TOOL_CONFIG" | jq -r "$1"
 }
 
+load_merged_config() {
+	if [[ -n "$MERGED_CONFIG" ]]; then
+		return
+	fi
+
+	local configs=()
+
+	if [[ -f "$CONFIG_FILE" ]]; then
+		configs+=("$CONFIG_FILE")
+	fi
+
+	if [[ -d "$CONFIG_D_DIR" ]]; then
+		for f in "$CONFIG_D_DIR"/*.json; do
+			if [[ -f "$f" ]]; then
+				configs+=("$f")
+			fi
+		done
+	fi
+
+	if [[ ${#configs[@]} -eq 0 ]]; then
+		die "no config found in $CONFIG_FILE or $CONFIG_D_DIR/*.json"
+	fi
+
+	# Merge all config files (later files override earlier ones)
+	MERGED_CONFIG="$(jq -s 'reduce .[] as $item ({}; . * $item)' "${configs[@]}")"
+}
+
 require_config() {
-	[[ -f "$CONFIG_FILE" ]] || die "config not found: $CONFIG_FILE"
+	load_merged_config
 }
 
 list_tools() {
-	jq -r 'keys[]' "$CONFIG_FILE"
+	load_merged_config
+	echo "$MERGED_CONFIG" | jq -r 'keys[]'
 }
 
 # =============================================================================
@@ -65,10 +95,10 @@ check_dependencies() {
 }
 
 load_config() {
-	[[ -f "$CONFIG_FILE" ]] || die "config not found: $CONFIG_FILE"
+	load_merged_config
 
-	TOOL_CONFIG="$(jq -e --arg t "$TOOL_NAME" '.[$t]' "$CONFIG_FILE" 2>/dev/null)" ||
-		die "no config for '$TOOL_NAME' in $CONFIG_FILE"
+	TOOL_CONFIG="$(echo "$MERGED_CONFIG" | jq -e --arg t "$TOOL_NAME" '.[$t]' 2>/dev/null)" ||
+		die "no config for '$TOOL_NAME'"
 }
 
 # =============================================================================
