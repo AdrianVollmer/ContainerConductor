@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PRODUCT="coco"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$PRODUCT"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+
+# Populated by parse_args and load_config
+TOOL_NAME=""
+TOOL_CONFIG=""
+
+# Accumulated podman arguments
+PODMAN_ARGS=()
+
+# =============================================================================
+# Utility functions
+# =============================================================================
+
+die() {
+	echo "error: $*" >&2
+	exit 1
+}
+
+cfg() {
+	echo "$TOOL_CONFIG" | jq -r "$1"
+}
+
+cfg_array() {
+	echo "$TOOL_CONFIG" | jq -r "$1"
+}
+
+# =============================================================================
+# Initialization
+# =============================================================================
+
+parse_args() {
+	local script_name
+	script_name="$(basename "$0")"
+
+	if [[ "$script_name" == "$PRODUCT" ]]; then
+		if [[ $# -lt 1 ]]; then
+			echo "Usage: $PRODUCT <tool> [args...]" >&2
+			echo "       or symlink $PRODUCT as <tool> and invoke directly" >&2
+			exit 1
+		fi
+		TOOL_NAME="$1"
+		shift
+	else
+		TOOL_NAME="$script_name"
+	fi
+
+	# Return remaining args via global REMAINING_ARGS
+	REMAINING_ARGS=("$@")
+}
+
+check_dependencies() {
+	command -v jq &>/dev/null || die "jq is required but not installed"
+}
+
+load_config() {
+	[[ -f "$CONFIG_FILE" ]] || die "config not found: $CONFIG_FILE"
+
+	TOOL_CONFIG="$(jq -e --arg t "$TOOL_NAME" '.[$t]' "$CONFIG_FILE" 2>/dev/null)" ||
+		die "no config for '$TOOL_NAME' in $CONFIG_FILE"
+}
+
+# =============================================================================
+# Podman argument builders
+# =============================================================================
+
+add_base_args() {
+	PODMAN_ARGS+=(run --rm --init)
+
+	# TTY: only attach interactive terminal when stdin is a tty
+	if [[ -t 0 ]]; then
+		PODMAN_ARGS+=(-it)
+	fi
+}
+
+add_mise_volumes() {
+	PODMAN_ARGS+=(
+		-v mise_installs:/mise/installs
+		-v mise_downloads:/mise/downloads
+		-v mise_shims:/mise/shims
+		-v mise_cache:/mise/cache
+	)
+}
+
+add_network() {
+	local network
+	network="$(cfg '.network // empty')"
+	[[ -n "$network" ]] && PODMAN_ARGS+=(--network "$network")
+}
+
+add_mounts() {
+	local mount src dst opts
+	while IFS= read -r mount; do
+		[[ "$mount" == "null" || -z "$mount" ]] && continue
+
+		src="$(echo "$mount" | jq -r '.src')"
+		dst="$(echo "$mount" | jq -r '.dst')"
+		opts="$(echo "$mount" | jq -r '.opts // empty')"
+
+		# Expand ~ and . in source path
+		src="${src/#\~/$HOME}"
+		[[ "$src" == "." ]] && src="$PWD"
+		src="$(realpath -m "$src")"
+
+		# Create host dir if it doesn't exist (avoid podman creating it as root)
+		[[ ! -e "$src" ]] && mkdir -p "$src"
+
+		if [[ -n "$opts" ]]; then
+			PODMAN_ARGS+=(-v "$src:$dst:$opts")
+		else
+			PODMAN_ARGS+=(-v "$src:$dst")
+		fi
+	done < <(cfg_array '.mounts // [] | .[]' | jq -c '.')
+}
+
+add_env_passthrough() {
+	local var
+	while IFS= read -r var; do
+		[[ -z "$var" ]] && continue
+		if [[ -v "$var" ]]; then
+			PODMAN_ARGS+=(-e "$var=${!var}")
+		fi
+	done < <(cfg_array '.env_passthrough // [] | .[]')
+}
+
+add_env_explicit() {
+	local kv
+	while IFS= read -r kv; do
+		[[ -z "$kv" ]] && continue
+		PODMAN_ARGS+=(-e "$kv")
+	done < <(cfg_array '.env // {} | to_entries[] | "\(.key)=\(.value)"')
+}
+
+add_ports() {
+	local port
+	while IFS= read -r port; do
+		[[ -z "$port" ]] && continue
+		PODMAN_ARGS+=(-p "$port")
+	done < <(cfg_array '.ports // [] | .[]')
+}
+
+add_extra_args() {
+	local extra
+	while IFS= read -r extra; do
+		[[ -z "$extra" ]] && continue
+		PODMAN_ARGS+=("$extra")
+	done < <(cfg_array '.podman_args // [] | .[]')
+}
+
+add_workdir() {
+	local workdir
+	workdir="$(cfg '.workdir // "/workspace"')"
+	PODMAN_ARGS+=(-w "$workdir")
+}
+
+build_podman_args() {
+	add_base_args
+	add_mise_volumes
+	add_network
+	add_mounts
+	add_env_passthrough
+	add_env_explicit
+	add_ports
+	add_extra_args
+	add_workdir
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+main() {
+	parse_args "$@"
+	check_dependencies
+	load_config
+
+	build_podman_args
+
+	local image command mise_tool cmd
+	image="$(cfg '.image // "docker.io/jdxcode/mise"')"
+	command="$(cfg '.command // empty')"
+	mise_tool="$(cfg '.tool')"
+	cmd="${command:-$TOOL_NAME}"
+
+	exec podman "${PODMAN_ARGS[@]}" "$image" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
+}
+
+main "$@"
