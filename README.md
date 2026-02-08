@@ -38,21 +38,23 @@ Run `coco help` to learn more:
 $ coco help
 Usage: coco <command> [args...]
 
-Commands:
-  run <tool> [args...]   Run a tool in a container
-  list                   List all configured tools
-  up                     Create symlinks for all tools
-  down                   Remove symlinks for all tools
-  prune                  Remove mise cache volumes
+    Commands:
+      run <tool> [args...]   Run a tool in a container
+      list                   List all configured tools
+      up                     Create symlinks for all tools
+      down                   Remove symlinks for all tools
+      prune                  Remove mise cache volumes
+      rebuild                Rebuild the container image
 
-Symlink invocation:
-  <tool> [args...]       Run via symlink (after 'up')
+    Symlink invocation:
+      <tool> [args...]       Run via symlink (after 'up')
 
-Environment:
-  COCO_RUNTIME        Container runtime: podman (default) or docker
-  COCO_DEBUG          Enable debug output (set to 'true' or '1')
-  COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
-  COCO_EXTRA_PORTS    Additional ports to publish (CSV, e.g. '8080:8080,3000:3000')
+    Environment:
+      COCO_RUNTIME        Container runtime: podman (default) or docker
+      COCO_IMAGE          Container image (default: localhost/coco:latest)
+      COCO_DEBUG          Enable debug output (set to 'true' or '1')
+      COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
+      COCO_EXTRA_PORTS    Additional ports to publish (CSV, e.g. '8080:8080,3000:3000')
 ```
 
 ## Configuration
@@ -133,6 +135,19 @@ Now tell it to use `mise` for running all kinds of dev tools in your
 `CLAUDE.md`.
 
 See `config.sample.json` for more examples.
+
+## Security
+
+Coco raises the bar for supply chain attacks, so a malicious dependency
+can't silently exfiltrate your SSH keys or AWS credentials. But it's not
+a perfect sandbox.
+
+**Known limitations:**
+
+- Shared volumes (like `~/.local/bin`) let one tool modify another
+  tool's executables, potentially gaining its permissions.
+- `allowed_hosts` filters DNS only. A determined attacker could use
+  hardcoded IPs or alternative resolution methods.
 
 ## License
 
