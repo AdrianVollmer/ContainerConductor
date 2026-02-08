@@ -24,8 +24,7 @@
       "api.anthropic.com",
       "statsig.anthropic.com",
       "sentry.io"
-    ],
-    "workdir": "/workspace"
+    ]
   },
   "typst": {
     "tool": "cargo:typst-cli",
@@ -44,7 +43,6 @@
     ],
     "env": {},
     "ports": [],
-    "workdir": "/workspace",
     "network": "none"
   },
   "node": {
@@ -65,8 +63,7 @@
     },
     "ports": [
       "3000:3000"
-    ],
-    "workdir": "/workspace"
+    ]
   },
   "eslint": {
     "tool": "npm:eslint",
@@ -84,8 +81,7 @@
     ],
     "env": {
       "NPM_CONFIG_PREFIX": "/root/.npm-global"
-    },
-    "workdir": "/workspace"
+    }
   },
   "python3": {
     "tool": "python@3",
@@ -101,8 +97,7 @@
       "PYTHONDONTWRITEBYTECODE"
     ],
     "env": {},
-    "ports": [],
-    "workdir": "/workspace"
+    "ports": []
   },
   "rg": {
     "tool": "cargo:ripgrep",
@@ -117,8 +112,7 @@
     "env_passthrough": [
       "TERM"
     ],
-    "network": "none",
-    "workdir": "/workspace"
+    "network": "none"
   },
   "cargo": {
     "tool": "rust",
@@ -133,8 +127,7 @@
       "TERM",
       "RUST_BACKTRACE",
       "RUST_LOG"
-    ],
-    "workdir": "/workspace"
+    ]
   },
   "go": {
     "tool": "go",
@@ -152,7 +145,6 @@
     ],
     "env": {
       "GOPATH": "/root/go"
-    },
-    "workdir": "/workspace"
+    }
   }
 }
