@@ -190,6 +190,16 @@ add_ports() {
 		[[ -z "$port" ]] && continue
 		PODMAN_ARGS+=(-p "$port")
 	done < <(cfg_array '.ports // [] | .[]')
+
+	# Extra ports from environment variable (CSV)
+	if [[ -n "${COCO_EXTRA_PORTS:-}" ]]; then
+		local extra_ports
+		IFS=',' read -ra extra_ports <<< "$COCO_EXTRA_PORTS"
+		for port in "${extra_ports[@]}"; do
+			[[ -z "$port" ]] && continue
+			PODMAN_ARGS+=(-p "$port")
+		done
+	fi
 }
 
 add_extra_args() {
@@ -298,6 +308,7 @@ cmd_help() {
 		  COCO_RUNTIME        Container runtime: podman (default) or docker
 		  COCO_DEBUG          Enable debug output (set to 'true' or '1')
 		  COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
+		  COCO_EXTRA_PORTS    Additional ports to publish (CSV, e.g. '8080:8080,3000:3000')
 	EOF
 }
 

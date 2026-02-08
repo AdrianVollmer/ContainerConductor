@@ -52,6 +52,7 @@ Environment:
   COCO_RUNTIME        Container runtime: podman (default) or docker
   COCO_DEBUG          Enable debug output (set to 'true' or '1')
   COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
+  COCO_EXTRA_PORTS    Additional ports to publish (CSV, e.g. '8080:8080,3000:3000')
 ```
 
 ## Configuration
