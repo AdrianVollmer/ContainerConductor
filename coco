@@ -69,6 +69,8 @@ COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh
 set -e
 
+mkdir -p "$GOROOT"
+
 if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     upstream="${COCO_UPSTREAM_DNS:-8.8.8.8}"
 
