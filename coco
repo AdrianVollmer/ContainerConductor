@@ -20,12 +20,20 @@ COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 # Container image (mise's image + uvx)
 COCO_IMAGE="${COCO_IMAGE:-localhost/coco:latest}"
 
+# shellcheck disable=SC2016
 DOCKERFILE='FROM ghcr.io/astral-sh/uv:latest AS uv
 
 FROM ghcr.io/jdx/mise:latest
 COPY --from=uv /uv /uvx /usr/local/bin/
-ENV MISE_DATA_DIR="/mise"
-ENV MISE_CACHE_DIR="/mise/cache"
+
+ENV MISE_DATA_DIR="/root/.local/share/mise"
+ENV MISE_CACHE_DIR="/root/.cache/mise"
+ENV MISE_CONFIG_DIR="/root/.config/mise"
+ENV GOROOT="/root/.local/share/go"
+ENV CARGO_HOME="/root/.cache/cargo"
+ENV CARGO_TARGET_DIR="/root/.local/bin"
+ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
+
 ENTRYPOINT ["mise"]
 '
 
@@ -135,16 +143,14 @@ add_base_args() {
 	fi
 }
 
-add_mise_volumes() {
+add_volumes() {
+	local config="${XDG_CONFIG_HOME:-$HOME/.config}/mise"
+	mkdir -p "${config}"
 	PODMAN_ARGS+=(
-		-v mise_installs:/mise/installs
-		-v mise_downloads:/mise/downloads
-		-v mise_shims:/mise/shims
-		-v mise_cache:/mise/cache
-		-v mise_xdg_cache:/root/.cache
-		-v mise_xdg_data:/root/.local
-		-v mise_cargo_home:/usr/local/cargo
-		-v mise_go_home:/root/go
+		-v coco_xdg_cache:/root/.cache
+		-v coco_xdg_data:/root/.local
+		-v coco_cargo_home:/usr/local/cargo
+		-v "${config}:/root/.config/mise"
 	)
 }
 
@@ -242,7 +248,7 @@ add_workdir() {
 
 build_podman_args() {
 	add_base_args
-	add_mise_volumes
+	add_volumes
 	add_network
 	add_mounts
 	add_env_passthrough
@@ -303,7 +309,7 @@ cmd_down() {
 }
 
 cmd_prune() {
-	local volumes=(mise_downloads mise_cache mise_xdg_cache)
+	local volumes=(coco_xdg_cache)
 	echo "Removing cache volumes..."
 	for vol in "${volumes[@]}"; do
 		if "$COCO_RUNTIME" volume rm "$vol" 2>/dev/null; then
@@ -312,6 +318,17 @@ cmd_prune() {
 			echo "skip: $vol (not found or in use)"
 		fi
 	done
+
+	# Clean downloads from the data volume (keep installed tools)
+	echo "Cleaning mise downloads..."
+	if "$COCO_RUNTIME" volume exists coco_xdg_data 2>/dev/null; then
+		"$COCO_RUNTIME" run --rm -v coco_xdg_data:/data docker.io/library/alpine \
+			rm -rf /data/share/mise/downloads 2>/dev/null &&
+			echo "removed: mise downloads" ||
+			echo "skip: mise downloads (not found or failed)"
+	else
+		echo "skip: mise downloads (volume not found)"
+	fi
 }
 
 cmd_help() {
