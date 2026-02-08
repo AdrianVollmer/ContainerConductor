@@ -37,10 +37,6 @@
       {
         "src": "~/.local/share/typst",
         "dst": "/root/.local/share/typst"
-      },
-      {
-        "src": "~/.cache/typst",
-        "dst": "/root/.cache/typst"
       }
     ],
     "env_passthrough": [
@@ -58,10 +54,6 @@
       {
         "src": ".",
         "dst": "/workspace"
-      },
-      {
-        "src": "~/.npm",
-        "dst": "/root/.npm"
       }
     ],
     "env_passthrough": [
@@ -101,10 +93,6 @@
       {
         "src": ".",
         "dst": "/workspace"
-      },
-      {
-        "src": "~/.cache/pip",
-        "dst": "/root/.cache/pip"
       }
     ],
     "env_passthrough": [
@@ -138,14 +126,6 @@
       {
         "src": ".",
         "dst": "/workspace"
-      },
-      {
-        "src": "~/.cargo/registry",
-        "dst": "/usr/local/cargo/registry"
-      },
-      {
-        "src": "~/.cargo/git",
-        "dst": "/usr/local/cargo/git"
       }
     ],
     "env_passthrough": [
@@ -162,14 +142,6 @@
       {
         "src": ".",
         "dst": "/workspace"
-      },
-      {
-        "src": "~/go/pkg",
-        "dst": "/root/go/pkg"
-      },
-      {
-        "src": "~/.cache/go-build",
-        "dst": "/root/.cache/go-build"
       }
     ],
     "env_passthrough": [
