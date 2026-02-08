@@ -71,19 +71,19 @@ create a symlink with the tool's name to the `coco` executable in
 
 **Config options:**
 
-| Option            | Description                                               |
-|-------------------|-----------------------------------------------------------|
-| `tool`            | mise tool specifier (e.g., `npm:eslint`, `cargo:ripgrep`) |
-| `command`         | Command to run (defaults to tool name)                    |
-| `mounts`          | Array of `{src, dst, opts}` bind mounts                   |
-| `env`             | Environment variables to set                              |
-| `env_passthrough` | Host env vars to pass through                             |
-| `workdir`         | Working directory in container (defaults to `/workspace`) |
-| `network`         | Network mode (`none` to disable)                          |
-| `allowed_hosts`   | DNS whitelist (enables network with restrictions)         |
-| `isolated`        | Use separate volumes for this tool (better sandboxing)    |
-| `ports`           | Ports to publish                                          |
-| `podman_args`     | Extra arguments to pass to podman/docker                  |
+| Option            | Description                                                              |
+|-------------------|--------------------------------------------------------------------------|
+| `tool`            | mise tool specifier (e.g., `npm:eslint`, `cargo:ripgrep`)                |
+| `command`         | Command to run (defaults to tool name)                                   |
+| `mounts`          | Array of `{src, dst, opts}` bind mounts                                  |
+| `env`             | Environment variables to set                                             |
+| `env_passthrough` | Host env vars to pass through                                            |
+| `workdir`         | Working directory in container (defaults to `/workspace`)                |
+| `network`         | Network mode (`none` to disable)                                         |
+| `allowed_hosts`   | DNS allowlist (enables network with restrictions)                        |
+| `isolated`        | Use separate volumes for this tool (better sandboxing, worse disk usage) |
+| `ports`           | Ports to publish                                                         |
+| `podman_args`     | Extra arguments to pass to podman/docker                                 |
 
 ## Example
 
@@ -109,7 +109,6 @@ and not much else.
     "env": {
       "NPM_CONFIG_PREFIX": "/root/.npm-global"
     },
-    "workdir": "/workspace",
     "network": "none"
   }
 }
@@ -142,8 +141,7 @@ adhering to the XDG Desktop Standard):
     "env_passthrough": [
       "TERM",
       "ANTHROPIC_API_KEY"
-    ],
-    "workdir": "/workspace"
+    ]
   }
 }
 ```
