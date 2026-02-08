@@ -17,6 +17,18 @@ CONFIG_D_DIR="$CONFIG_DIR/config.d"
 # Container runtime: "podman" (default) or "docker"
 COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 
+# Container image (mise's image + uvx)
+COCO_IMAGE="${COCO_IMAGE:-localhost/coco:latest}"
+
+DOCKERFILE='FROM ghcr.io/astral-sh/uv:latest AS uv
+
+FROM ghcr.io/jdx/mise:latest
+COPY --from=uv /uv /uvx /usr/local/bin/
+ENV MISE_DATA_DIR="/mise"
+ENV MISE_CACHE_DIR="/mise/cache"
+ENTRYPOINT ["mise"]
+'
+
 # Populated by run_tool and load_config
 TOOL_NAME=""
 TOOL_CONFIG=""
@@ -94,6 +106,15 @@ check_dependencies() {
 		die "$COCO_RUNTIME is required but not installed"
 }
 
+ensure_image() {
+	if "$COCO_RUNTIME" image exists "$COCO_IMAGE" 2>/dev/null; then
+		return
+	fi
+
+	echo "Building $COCO_IMAGE..." >&2
+	echo "$DOCKERFILE" | "$COCO_RUNTIME" build -t "$COCO_IMAGE" -f - .
+}
+
 load_config() {
 	load_merged_config
 
@@ -120,7 +141,10 @@ add_mise_volumes() {
 		-v mise_downloads:/mise/downloads
 		-v mise_shims:/mise/shims
 		-v mise_cache:/mise/cache
-		-v cargo_home:/usr/local/cargo
+		-v mise_xdg_cache:/root/.cache
+		-v mise_xdg_data:/root/.local
+		-v mise_cargo_home:/usr/local/cargo
+		-v mise_go_home:/root/go
 	)
 }
 
@@ -194,7 +218,7 @@ add_ports() {
 	# Extra ports from environment variable (CSV)
 	if [[ -n "${COCO_EXTRA_PORTS:-}" ]]; then
 		local extra_ports
-		IFS=',' read -ra extra_ports <<< "$COCO_EXTRA_PORTS"
+		IFS=',' read -ra extra_ports <<<"$COCO_EXTRA_PORTS"
 		for port in "${extra_ports[@]}"; do
 			[[ -z "$port" ]] && continue
 			PODMAN_ARGS+=(-p "$port")
@@ -279,7 +303,7 @@ cmd_down() {
 }
 
 cmd_prune() {
-	local volumes=(mise_installs mise_downloads mise_shims mise_cache cargo_home)
+	local volumes=(mise_downloads mise_cache mise_xdg_cache)
 	echo "Removing cache volumes..."
 	for vol in "${volumes[@]}"; do
 		if "$COCO_RUNTIME" volume rm "$vol" 2>/dev/null; then
@@ -306,6 +330,7 @@ cmd_help() {
 
 		Environment:
 		  COCO_RUNTIME        Container runtime: podman (default) or docker
+		  COCO_IMAGE          Container image (default: localhost/coco:latest)
 		  COCO_DEBUG          Enable debug output (set to 'true' or '1')
 		  COCO_ALLOW_NETWORK  Override network restrictions (set to 'true' or '1')
 		  COCO_EXTRA_PORTS    Additional ports to publish (CSV, e.g. '8080:8080,3000:3000')
@@ -322,16 +347,16 @@ run_tool() {
 	REMAINING_ARGS=("$@")
 
 	check_dependencies
+	ensure_image
 	load_config
 	build_podman_args
 
-	local image command mise_tool cmd
-	image="$(cfg '.image // "docker.io/jdxcode/mise"')"
+	local command mise_tool cmd
 	command="$(cfg '.command // empty')"
 	mise_tool="$(cfg '.tool')"
 	cmd="${command:-$TOOL_NAME}"
 
-	exec "$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$image" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
+	exec "$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$COCO_IMAGE" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
 }
 
 # =============================================================================
