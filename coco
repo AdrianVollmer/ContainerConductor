@@ -34,6 +34,7 @@ ENV CARGO_HOME="/root/.cache/cargo"
 ENV CARGO_TARGET_DIR="/root/.local/bin"
 ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
+RUN mkdir -p /workspace
 ENTRYPOINT ["mise"]
 '
 
@@ -120,7 +121,7 @@ ensure_image() {
 	fi
 
 	echo "Building $COCO_IMAGE..." >&2
-	echo "$DOCKERFILE" | "$COCO_RUNTIME" build -t "$COCO_IMAGE" -f - .
+	echo "$DOCKERFILE" | "$COCO_RUNTIME" build --format docker -t "$COCO_IMAGE" -f - .
 }
 
 load_config() {
@@ -331,6 +332,12 @@ cmd_prune() {
 	fi
 }
 
+cmd_rebuild() {
+	echo "Rebuilding $COCO_IMAGE..."
+	echo "$DOCKERFILE" | "$COCO_RUNTIME" build --format docker --pull --no-cache -t "$COCO_IMAGE" -f - .
+	echo "done"
+}
+
 cmd_help() {
 	cat <<-EOF
 		Usage: $PRODUCT <command> [args...]
@@ -341,6 +348,7 @@ cmd_help() {
 		  up                     Create symlinks for all tools
 		  down                   Remove symlinks for all tools
 		  prune                  Remove mise cache volumes
+		  rebuild                Rebuild the container image
 
 		Symlink invocation:
 		  <tool> [args...]       Run via symlink (after 'up')
@@ -410,6 +418,7 @@ main() {
 	up) cmd_up ;;
 	down) cmd_down ;;
 	prune) cmd_prune ;;
+	rebuild) cmd_rebuild ;;
 	help | --help | -h) cmd_help ;;
 	*) die "unknown command: $cmd (see '$PRODUCT help')" ;;
 	esac
