@@ -20,6 +20,11 @@
       "TERM",
       "ANTHROPIC_API_KEY"
     ],
+    "allowed_hosts": [
+      "api.anthropic.com",
+      "statsig.anthropic.com",
+      "sentry.io"
+    ],
     "workdir": "/workspace"
   },
   "typst": {

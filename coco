@@ -20,11 +20,38 @@ COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 # Container image (mise's image + uvx)
 COCO_IMAGE="${COCO_IMAGE:-localhost/coco:latest}"
 
+# Default allowed hosts for common package registries
+DEFAULT_ALLOWED_HOSTS=(
+	# Python/pip
+	pypi.org
+	files.pythonhosted.org
+	# Rust/cargo
+	crates.io
+	static.crates.io
+	index.crates.io
+	# Go
+	proxy.golang.org
+	sum.golang.org
+	storage.googleapis.com
+	# npm
+	registry.npmjs.org
+	# Ruby
+	rubygems.org
+	# GitHub
+	github.com
+	raw.githubusercontent.com
+	objects.githubusercontent.com
+	codeload.github.com
+)
+
 # shellcheck disable=SC2016
 DOCKERFILE='FROM ghcr.io/astral-sh/uv:latest AS uv
 
 FROM ghcr.io/jdx/mise:latest
 COPY --from=uv /uv /uvx /usr/local/bin/
+
+RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV MISE_DATA_DIR="/root/.local/share/mise"
 ENV MISE_CACHE_DIR="/root/.cache/mise"
@@ -35,7 +62,42 @@ ENV CARGO_TARGET_DIR="/root/.local/bin"
 ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
 RUN mkdir -p /workspace
-ENTRYPOINT ["mise"]
+
+COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
+#!/bin/sh
+set -e
+
+if [ -n "$COCO_ALLOWED_HOSTS" ]; then
+    upstream="${COCO_UPSTREAM_DNS:-8.8.8.8}"
+
+    # Generate dnsmasq config: block all except allowed hosts
+    {
+        echo "no-resolv"
+        echo "no-hosts"
+        echo "listen-address=127.0.0.1"
+        echo "bind-interfaces"
+        # Return NXDOMAIN for everything by default
+        echo "address=/#/"
+        # Allow specific hosts
+        echo "$COCO_ALLOWED_HOSTS" | tr "," "\n" | while read -r host; do
+            [ -n "$host" ] && echo "server=/$host/$upstream"
+        done
+    } > /etc/dnsmasq.conf
+
+    # Point resolver to local dnsmasq
+    echo "nameserver 127.0.0.1" > /etc/resolv.conf
+
+    # Start dnsmasq
+    dnsmasq
+
+    unset COCO_ALLOWED_HOSTS COCO_UPSTREAM_DNS
+fi
+
+exec mise "$@"
+ENTRYPOINT
+RUN chmod +x /usr/local/bin/coco-entrypoint
+
+ENTRYPOINT ["/usr/local/bin/coco-entrypoint"]
 '
 
 # Populated by run_tool and load_config
@@ -215,6 +277,21 @@ add_env_explicit() {
 	done < <(cfg_array '.env // {} | to_entries[] | "\(.key)=\(.value)"')
 }
 
+add_allowed_hosts() {
+	local user_hosts all_hosts
+	user_hosts="$(cfg_array '.allowed_hosts // [] | join(",")')"
+	if [[ -n "$user_hosts" ]]; then
+		# Merge default hosts with user-specified hosts
+		local IFS=','
+		all_hosts="${DEFAULT_ALLOWED_HOSTS[*]},$user_hosts"
+		PODMAN_ARGS+=(-e "COCO_ALLOWED_HOSTS=$all_hosts")
+		# Pass host's DNS server to container
+		local upstream
+		upstream="$(grep -m1 '^nameserver' /etc/resolv.conf | awk '{print $2}')"
+		PODMAN_ARGS+=(-e "COCO_UPSTREAM_DNS=${upstream:-8.8.8.8}")
+	fi
+}
+
 add_ports() {
 	local port
 	while IFS= read -r port; do
@@ -254,6 +331,7 @@ build_podman_args() {
 	add_mounts
 	add_env_passthrough
 	add_env_explicit
+	add_allowed_hosts
 	add_ports
 	add_extra_args
 	add_workdir
