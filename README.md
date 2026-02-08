@@ -60,13 +60,30 @@ Usage: coco <command> [args...]
 ## Configuration
 
 Each tool must be configured in `$HOME/.config/coco/config.json` (or
-`$XDG_CONFIG_HOME`).
+`$XDG_CONFIG_HOME`). You can also split configs across multiple files
+in `config.d/*.json`.
 
 To manage the tools, call `coco` directly. To run tools via `coco`,
 create a symlink with the tool's name to the `coco` executable in
 `$HOME/.local/bin`.
 
 `coco up` will create a symlink for each tool to `coco`.
+
+**Config options:**
+
+| Option | Description |
+|--------|-------------|
+| `tool` | mise tool specifier (e.g., `npm:eslint`, `cargo:ripgrep`) |
+| `command` | Command to run (defaults to tool name) |
+| `mounts` | Array of `{src, dst, opts}` bind mounts |
+| `env` | Environment variables to set |
+| `env_passthrough` | Host env vars to pass through |
+| `workdir` | Working directory in container |
+| `network` | Network mode (`none` to disable) |
+| `allowed_hosts` | DNS whitelist (enables network with restrictions) |
+| `isolated` | Use separate volumes for this tool (better sandboxing) |
+| `ports` | Ports to publish |
+| `podman_args` | Extra arguments to pass to podman/docker |
 
 ## Example
 

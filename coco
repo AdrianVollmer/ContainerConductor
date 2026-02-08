@@ -209,9 +209,15 @@ add_base_args() {
 add_volumes() {
 	local config="${XDG_CONFIG_HOME:-$HOME/.config}/mise"
 	mkdir -p "${config}"
+
+	local suffix=""
+	if [[ "$(cfg '.isolated // false')" == "true" ]]; then
+		suffix="_${TOOL_NAME}"
+	fi
+
 	PODMAN_ARGS+=(
-		-v coco_xdg_cache:/root/.cache
-		-v coco_xdg_data:/root/.local
+		-v "coco_xdg_cache${suffix}:/root/.cache"
+		-v "coco_xdg_data${suffix}:/root/.local"
 		-v "${config}:/root/.config/mise"
 	)
 }
