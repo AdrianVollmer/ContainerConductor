@@ -212,7 +212,6 @@ add_volumes() {
 	PODMAN_ARGS+=(
 		-v coco_xdg_cache:/root/.cache
 		-v coco_xdg_data:/root/.local
-		-v coco_cargo_home:/usr/local/cargo
 		-v "${config}:/root/.config/mise"
 	)
 }
