@@ -61,6 +61,7 @@ ENV MISE_SILENT=true
 ENV GOROOT="/root/.local/share/go"
 ENV CARGO_HOME="/root/.cache/cargo"
 ENV CARGO_TARGET_DIR="/root/.local/bin"
+ENV RUSTUP_HOME="/root/.local/share/rustup"
 ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
 RUN mkdir -p /workspace
