@@ -35,6 +35,7 @@ DEFAULT_ALLOWED_HOSTS=(
 	storage.googleapis.com
 	# npm
 	registry.npmjs.org
+	nodejs.org
 	# Ruby
 	rubygems.org
 	# GitHub
