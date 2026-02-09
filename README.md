@@ -71,20 +71,20 @@ create a symlink with the tool's name to the `coco` executable in
 
 **Config options:**
 
-| Option            | Description                                                              |
-|-------------------|--------------------------------------------------------------------------|
-| `tool`            | mise tool specifier (e.g., `npm:eslint`, `cargo:ripgrep`)                |
-| `command`         | Command to run (defaults to tool name)                                   |
-| `mounts`          | Array of `{src, dst, opts}` bind mounts                                  |
-| `env`             | Environment variables to set                                             |
-| `env_passthrough` | Host env vars to pass through                                            |
-| `workdir`         | Working directory in container (defaults to `/workspace`)                |
-| `network`         | Network mode (`none` to disable)                                         |
-| `allowed_hosts`   | DNS allowlist (enables network with restrictions)                        |
-| `isolated`        | Use separate volumes for this tool (better sandboxing, worse disk usage) |
-| `ports`           | Ports to publish                                                         |
+| Option            | Description                                                                  |
+|-------------------|------------------------------------------------------------------------------|
+| `tool`            | mise tool specifier (e.g., `npm:eslint`, `cargo:ripgrep`)                    |
+| `command`         | Command to run (defaults to tool name)                                       |
+| `mounts`          | Array of `{src, dst, opts}` bind mounts                                      |
+| `env`             | Environment variables to set                                                 |
+| `env_passthrough` | Host env vars to pass through                                                |
+| `workdir`         | Working directory in container (defaults to `/workspace`)                    |
+| `network`         | Network mode (`none` to disable)                                             |
+| `allowed_hosts`   | DNS allowlist (enables network with restrictions)                            |
+| `isolated`        | Use separate volumes for this tool (better sandboxing, worse disk usage)     |
+| `ports`           | Ports to publish                                                             |
 | `x11`             | Enable X11 support for GUI applications (mounts X11 socket and sets up auth) |
-| `podman_args`     | Extra arguments to pass to podman/docker                                 |
+| `podman_args`     | Extra arguments to pass to podman/docker                                     |
 
 ## Example
 
@@ -164,6 +164,10 @@ a perfect sandbox.
   tool's executables, potentially gaining its permissions.
 - `allowed_hosts` filters DNS only. A determined attacker could use
   hardcoded IPs or alternative resolution methods.
+- Coco files can still be malicious. You should inspect the content
+  before adding coco files from a dubious source, especially which
+  directories and environment variables they want to read. Also, x11
+  permissions can be powerful.
 
 ## License
 
