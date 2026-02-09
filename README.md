@@ -29,6 +29,7 @@ else in your search path.
 - bash
 - podman or docker
 - jq
+- curl (optional)
 
 ## Usage
 
@@ -41,6 +42,7 @@ Usage: coco <command> [args...]
     Commands:
       run <tool> [args...]   Run a tool in a container
       list                   List all configured tools
+      get <name>             Download config from the store
       up                     Create symlinks for all tools
       down                   Remove symlinks for all tools
       prune                  Remove mise cache volumes
