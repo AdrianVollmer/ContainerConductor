@@ -94,6 +94,10 @@ if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     unset COCO_ALLOWED_HOSTS COCO_UPSTREAM_DNS
 fi
 
+mkdir -p /root/.config/mise
+mv /mise/config.toml /root/.config/mise
+mise -q use -g node@lts python@latest
+
 exec mise "$@"
 ENTRYPOINT
 RUN chmod +x /usr/local/bin/coco-entrypoint
