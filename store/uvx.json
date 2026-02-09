@@ -1,0 +1,15 @@
+{
+  "uvx": {
+    "tool": "uv",
+    "command": "uvx",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ]
+  }
+}

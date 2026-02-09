@@ -61,15 +61,18 @@ Usage: coco <command> [args...]
 
 ## Configuration
 
-Each tool must be configured in `$HOME/.config/coco/config.json` (or
-`$XDG_CONFIG_HOME`). You can also split configs across multiple files in
-`config.d/*.json`.
+Tool configs are stored in `$HOME/.local/share/coco/tools/` (or
+`$XDG_DATA_HOME/coco/tools/`). Each file contains exactly one tool.
 
-To manage the tools, call `coco` directly. To run tools via `coco`,
-create a symlink with the tool's name to the `coco` executable in
-`$HOME/.local/bin`.
+Use `coco get <name>` to download configs from the store:
 
-`coco up` will create a symlink for each tool to `coco`.
+```bash
+coco get eslint
+coco get python
+coco up
+```
+
+`coco up` creates symlinks in `~/.local/bin` for all configured tools.
 
 **Config options:**
 
@@ -92,35 +95,24 @@ create a symlink with the tool's name to the `coco` executable in
 
 Let's take [`eslint`](https://eslint.org/) as an example. As a static
 code analyzer, it mostly needs access to the current working directory
-and not much else.
+and not much else. Save this as `~/.local/share/coco/tools/eslint.json`:
 
 ``` json
 {
   "eslint": {
     "tool": "npm:eslint",
     "command": "eslint",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "NODE_ENV"
-    ],
-    "env": {
-      "NPM_CONFIG_PREFIX": "/root/.npm-global"
-    },
+    "mounts": [{ "src": ".", "dst": "/workspace" }],
+    "env_passthrough": ["TERM", "NODE_ENV"],
     "network": "none"
   }
 }
 ```
 
-Or let's take [Claude Code](https://code.claude.com/docs/en/overview).
-We mount the current working directory as well as the config directory
-and the data directory (we can even fix the missed opportunity of
-adhering to the XDG Desktop Standard):
+Or download it from the store: `coco get eslint`
+
+For [Claude Code](https://claude.ai/code), save as
+`~/.local/share/coco/tools/claude.json`:
 
 ``` json
 {
@@ -128,31 +120,19 @@ adhering to the XDG Desktop Standard):
     "tool": "npm:@anthropic-ai/claude-code",
     "command": "claude",
     "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      },
-      {
-        "src": "~/.local/share/claude",
-        "dst": "/root/.claude"
-      },
-      {
-        "src": "~/.config/claude",
-        "dst": "/root/.config/claude"
-      }
+      { "src": ".", "dst": "/workspace" },
+      { "src": "~/.local/share/claude", "dst": "/root/.claude" },
+      { "src": "~/.config/claude", "dst": "/root/.config/claude" }
     ],
-    "env_passthrough": [
-      "TERM",
-      "ANTHROPIC_API_KEY"
-    ]
+    "env_passthrough": ["TERM", "ANTHROPIC_API_KEY"],
+    "allowed_hosts": ["api.anthropic.com", "statsig.anthropic.com"]
   }
 }
 ```
 
-Now tell it to use `mise` for running all kinds of dev tools in your
-`CLAUDE.md`.
+Or: `coco get claude`
 
-See `config.sample.json` for more examples.
+See the `store/` directory for more examples.
 
 ## Security
 

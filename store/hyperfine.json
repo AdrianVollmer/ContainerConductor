@@ -1,0 +1,17 @@
+{
+  "hyperfine": {
+    "tool": "cargo:hyperfine",
+    "command": "hyperfine",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  }
+}

@@ -1,7 +1,7 @@
 {
-  "node": {
+  "npx": {
     "tool": "node@lts",
-    "command": "node",
+    "command": "npx",
     "mounts": [
       {
         "src": ".",
@@ -11,9 +11,6 @@
     "env_passthrough": [
       "TERM",
       "NODE_ENV"
-    ],
-    "ports": [
-      "3000:3000"
     ]
   }
 }

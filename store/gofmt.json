@@ -1,7 +1,8 @@
 {
-  "go": {
+  "gofmt": {
     "tool": "go",
-    "command": "go",
+    "command": "gofmt",
+    "isolated": true,
     "mounts": [
       {
         "src": ".",
@@ -9,12 +10,8 @@
       }
     ],
     "env_passthrough": [
-      "TERM",
-      "GOPROXY",
-      "GOPRIVATE"
+      "TERM"
     ],
-    "env": {
-      "GOPATH": "/root/go"
-    }
+    "network": "none"
   }
 }

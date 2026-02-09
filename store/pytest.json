@@ -1,7 +1,7 @@
 {
-  "node": {
-    "tool": "node@lts",
-    "command": "node",
+  "pytest": {
+    "tool": "uv:pytest",
+    "command": "pytest",
     "mounts": [
       {
         "src": ".",
@@ -10,10 +10,8 @@
     ],
     "env_passthrough": [
       "TERM",
-      "NODE_ENV"
+      "PYTHONPATH"
     ],
-    "ports": [
-      "3000:3000"
-    ]
+    "network": "none"
   }
 }

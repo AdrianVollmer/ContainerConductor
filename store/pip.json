@@ -1,7 +1,7 @@
 {
-  "python": {
+  "pip": {
     "tool": "python@3",
-    "command": "python",
+    "command": "pip",
     "mounts": [
       {
         "src": ".",
@@ -9,9 +9,7 @@
       }
     ],
     "env_passthrough": [
-      "TERM",
-      "PYTHONDONTWRITEBYTECODE",
-      "PYTHONPATH"
+      "TERM"
     ]
   }
 }

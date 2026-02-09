@@ -10,9 +10,8 @@ if [[ "${COCO_DEBUG:-}" == "true" || "${COCO_DEBUG:-}" == "1" ]]; then
 fi
 
 PRODUCT="coco"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/$PRODUCT"
-CONFIG_FILE="$CONFIG_DIR/config.json"
-CONFIG_D_DIR="$CONFIG_DIR/config.d"
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/$PRODUCT"
+TOOLS_DIR="$DATA_DIR/tools"
 
 # Container runtime: "podman" (default) or "docker"
 COCO_RUNTIME="${COCO_RUNTIME:-podman}"
@@ -69,13 +68,14 @@ ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
 RUN mkdir -p \
     /workspace \
-    /root/.local/bin
+    /root/.local/bin \
+    "$GOROOT" && \
+    rm -f /mise/config.toml
+
 
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh
 set -e
-
-mkdir -p "$GOROOT"
 
 if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     upstream="${COCO_UPSTREAM_DNS:-8.8.8.8}"
@@ -102,8 +102,6 @@ if [ -n "$COCO_ALLOWED_HOSTS" ]; then
 
     unset COCO_ALLOWED_HOSTS COCO_UPSTREAM_DNS
 fi
-
-rm -f /mise/config.toml
 
 exec mise "$@"
 ENTRYPOINT
@@ -142,25 +140,28 @@ load_merged_config() {
 		return
 	fi
 
+	if [[ ! -d "$TOOLS_DIR" ]]; then
+		die "no tools directory: $TOOLS_DIR (run '$PRODUCT get <tool>' to add tools)"
+	fi
+
 	local configs=()
-
-	if [[ -f "$CONFIG_FILE" ]]; then
-		configs+=("$CONFIG_FILE")
-	fi
-
-	if [[ -d "$CONFIG_D_DIR" ]]; then
-		for f in "$CONFIG_D_DIR"/*.json; do
-			if [[ -f "$f" ]]; then
-				configs+=("$f")
+	for f in "$TOOLS_DIR"/*.json; do
+		if [[ -f "$f" ]]; then
+			# Validate: each file must have exactly one tool
+			local count
+			count="$(jq 'keys | length' "$f")"
+			if [[ "$count" -ne 1 ]]; then
+				die "config file must have exactly one tool: $f (has $count)"
 			fi
-		done
-	fi
+			configs+=("$f")
+		fi
+	done
 
 	if [[ ${#configs[@]} -eq 0 ]]; then
-		die "no config found in $CONFIG_FILE or $CONFIG_D_DIR/*.json"
+		die "no tools found in $TOOLS_DIR/*.json"
 	fi
 
-	# Merge all config files (later files override earlier ones)
+	# Merge all config files
 	MERGED_CONFIG="$(jq -s 'reduce .[] as $item ({}; . * $item)' "${configs[@]}")"
 }
 
@@ -195,7 +196,12 @@ ensure_image() {
 	fi
 
 	echo "Building $COCO_IMAGE..." >&2
-	echo "$DOCKERFILE" | "$COCO_RUNTIME" build --format docker -t "$COCO_IMAGE" -f - .
+	local format_flag=""
+	if [[ "$COCO_RUNTIME" == "podman" ]]; then
+		format_flag="--format docker"
+	fi
+	# shellcheck disable=SC2086
+	echo "$DOCKERFILE" | "$COCO_RUNTIME" build $format_flag -t "$COCO_IMAGE" -f - .
 }
 
 load_config() {
@@ -459,7 +465,12 @@ cmd_prune() {
 
 cmd_rebuild() {
 	echo "Rebuilding $COCO_IMAGE..."
-	echo "$DOCKERFILE" | "$COCO_RUNTIME" build --format docker --pull --no-cache -t "$COCO_IMAGE" -f - .
+	local format_flag=""
+	if [[ "$COCO_RUNTIME" == "podman" ]]; then
+		format_flag="--format docker"
+	fi
+	# shellcheck disable=SC2086
+	echo "$DOCKERFILE" | "$COCO_RUNTIME" build $format_flag --pull --no-cache -t "$COCO_IMAGE" -f - .
 	echo "done"
 }
 
@@ -470,9 +481,9 @@ cmd_get() {
 
 	local name="$1"
 	local url="${COCO_STORE_BASE}/${name}.json"
-	local dest="$CONFIG_D_DIR/${name}.json"
+	local dest="$TOOLS_DIR/${name}.json"
 
-	mkdir -p "$CONFIG_D_DIR"
+	mkdir -p "$TOOLS_DIR"
 
 	if [[ -f "$dest" ]]; then
 		die "config already exists: $dest"

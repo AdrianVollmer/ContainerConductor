@@ -1,7 +1,7 @@
 {
-  "node": {
-    "tool": "node@lts",
-    "command": "node",
+  "python3": {
+    "tool": "python@3",
+    "command": "python3",
     "mounts": [
       {
         "src": ".",
@@ -10,10 +10,8 @@
     ],
     "env_passthrough": [
       "TERM",
-      "NODE_ENV"
-    ],
-    "ports": [
-      "3000:3000"
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONPATH"
     ]
   }
 }
