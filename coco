@@ -69,9 +69,10 @@ ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 RUN mkdir -p \
     /workspace \
     /root/.local/bin \
-    "$GOROOT" && \
-    rm -f /mise/config.toml
+    "$GOROOT"
 
+WORKDIR /workspace
+RUN rm -rf /mise
 
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh

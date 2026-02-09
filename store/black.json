@@ -1,5 +1,5 @@
 {
-  "tool": "uv:black",
+  "tool": "pipx:black",
   "command": "black",
   "isolated": true,
   "mounts": [
