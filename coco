@@ -20,6 +20,9 @@ COCO_RUNTIME="${COCO_RUNTIME:-podman}"
 # Container image (mise's image + uvx)
 COCO_IMAGE="${COCO_IMAGE:-localhost/coco:latest}"
 
+# Store base URL
+COCO_STORE_BASE="${COCO_STORE_BASE:-https://raw.githubusercontent.com/AdrianVollmer/ContainerConductor/main/store}"
+
 # Default allowed hosts for common package registries
 DEFAULT_ALLOWED_HOSTS=(
 	# Python/pip
@@ -466,7 +469,7 @@ cmd_get() {
 	fi
 
 	local name="$1"
-	local url="https://raw.githubusercontent.com/AdrianVollmer/ContainerConductor/main/store/${name}.json"
+	local url="${COCO_STORE_BASE}/${name}.json"
 	local dest="$CONFIG_D_DIR/${name}.json"
 
 	mkdir -p "$CONFIG_D_DIR"
