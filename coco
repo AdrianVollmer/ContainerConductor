@@ -57,6 +57,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq \
 ENV MISE_DATA_DIR="/root/.local/share/mise"
 ENV MISE_CACHE_DIR="/root/.cache/mise"
 ENV MISE_CONFIG_DIR="/root/.config/mise"
+ENV MISE_SILENT=true
 ENV GOROOT="/root/.local/share/go"
 ENV CARGO_HOME="/root/.cache/cargo"
 ENV CARGO_TARGET_DIR="/root/.local/bin"
