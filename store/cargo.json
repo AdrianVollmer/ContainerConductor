@@ -1,20 +1,18 @@
 {
-  "cargo": {
-    "tool": "rust",
-    "command": "cargo",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env": {
-      "CARGO_TARGET_DIR": "target"
-    },
-    "env_passthrough": [
-      "TERM",
-      "RUST_BACKTRACE",
-      "RUST_LOG"
-    ]
-  }
+  "tool": "rust",
+  "command": "cargo",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env": {
+    "CARGO_TARGET_DIR": "target"
+  },
+  "env_passthrough": [
+    "TERM",
+    "RUST_BACKTRACE",
+    "RUST_LOG"
+  ]
 }

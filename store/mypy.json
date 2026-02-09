@@ -1,17 +1,15 @@
 {
-  "mypy": {
-    "tool": "uv:mypy",
-    "command": "mypy",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "uv:mypy",
+  "command": "mypy",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

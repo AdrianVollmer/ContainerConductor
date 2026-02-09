@@ -144,25 +144,22 @@ load_merged_config() {
 		die "no tools directory: $TOOLS_DIR (run '$PRODUCT get <tool>' to add tools)"
 	fi
 
-	local configs=()
+	local merged="{}"
+	local found=false
 	for f in "$TOOLS_DIR"/*.json; do
 		if [[ -f "$f" ]]; then
-			# Validate: each file must have exactly one tool
-			local count
-			count="$(jq 'keys | length' "$f")"
-			if [[ "$count" -ne 1 ]]; then
-				die "config file must have exactly one tool: $f (has $count)"
-			fi
-			configs+=("$f")
+			found=true
+			local tool_name
+			tool_name="$(basename "$f" .json)"
+			merged="$(echo "$merged" | jq --arg t "$tool_name" --slurpfile cfg "$f" '. + {($t): $cfg[0]}')"
 		fi
 	done
 
-	if [[ ${#configs[@]} -eq 0 ]]; then
+	if [[ "$found" == "false" ]]; then
 		die "no tools found in $TOOLS_DIR/*.json"
 	fi
 
-	# Merge all config files
-	MERGED_CONFIG="$(jq -s 'reduce .[] as $item ({}; . * $item)' "${configs[@]}")"
+	MERGED_CONFIG="$merged"
 }
 
 require_config() {

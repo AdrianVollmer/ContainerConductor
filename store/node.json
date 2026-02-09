@@ -1,19 +1,17 @@
 {
-  "node": {
-    "tool": "node@lts",
-    "command": "node",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "NODE_ENV"
-    ],
-    "ports": [
-      "3000:3000"
-    ]
-  }
+  "tool": "node@lts",
+  "command": "node",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "NODE_ENV"
+  ],
+  "ports": [
+    "3000:3000"
+  ]
 }

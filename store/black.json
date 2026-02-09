@@ -1,17 +1,15 @@
 {
-  "black": {
-    "tool": "uv:black",
-    "command": "black",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "uv:black",
+  "command": "black",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

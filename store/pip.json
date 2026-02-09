@@ -1,15 +1,13 @@
 {
-  "pip": {
-    "tool": "python@3",
-    "command": "pip",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ]
-  }
+  "tool": "python@3",
+  "command": "pip",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ]
 }

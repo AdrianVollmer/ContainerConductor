@@ -1,17 +1,15 @@
 {
-  "golangci-lint": {
-    "tool": "go:github.com/golangci/golangci-lint/cmd/golangci-lint",
-    "command": "golangci-lint",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "go:github.com/golangci/golangci-lint/cmd/golangci-lint",
+  "command": "golangci-lint",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

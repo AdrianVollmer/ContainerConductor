@@ -1,17 +1,15 @@
 {
-  "pytest": {
-    "tool": "uv:pytest",
-    "command": "pytest",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "PYTHONPATH"
-    ],
-    "network": "none"
-  }
+  "tool": "uv:pytest",
+  "command": "pytest",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "PYTHONPATH"
+  ],
+  "network": "none"
 }

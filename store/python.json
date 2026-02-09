@@ -1,17 +1,15 @@
 {
-  "python": {
-    "tool": "python@3",
-    "command": "python",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "PYTHONDONTWRITEBYTECODE",
-      "PYTHONPATH"
-    ]
-  }
+  "tool": "python@3",
+  "command": "python",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "PYTHONDONTWRITEBYTECODE",
+    "PYTHONPATH"
+  ]
 }

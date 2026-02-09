@@ -62,7 +62,7 @@ Usage: coco <command> [args...]
 ## Configuration
 
 Tool configs are stored in `$HOME/.local/share/coco/tools/` (or
-`$XDG_DATA_HOME/coco/tools/`). Each file contains exactly one tool.
+`$XDG_DATA_HOME/coco/tools/`). The filename (without `.json`) is the tool name.
 
 Use `coco get <name>` to download configs from the store:
 
@@ -99,13 +99,11 @@ and not much else. Save this as `~/.local/share/coco/tools/eslint.json`:
 
 ``` json
 {
-  "eslint": {
-    "tool": "npm:eslint",
-    "command": "eslint",
-    "mounts": [{ "src": ".", "dst": "/workspace" }],
-    "env_passthrough": ["TERM", "NODE_ENV"],
-    "network": "none"
-  }
+  "tool": "npm:eslint",
+  "command": "eslint",
+  "mounts": [{ "src": ".", "dst": "/workspace" }],
+  "env_passthrough": ["TERM", "NODE_ENV"],
+  "network": "none"
 }
 ```
 
@@ -116,17 +114,15 @@ For [Claude Code](https://claude.ai/code), save as
 
 ``` json
 {
-  "claude": {
-    "tool": "npm:@anthropic-ai/claude-code",
-    "command": "claude",
-    "mounts": [
-      { "src": ".", "dst": "/workspace" },
-      { "src": "~/.local/share/claude", "dst": "/root/.claude" },
-      { "src": "~/.config/claude", "dst": "/root/.config/claude" }
-    ],
-    "env_passthrough": ["TERM", "ANTHROPIC_API_KEY"],
-    "allowed_hosts": ["api.anthropic.com", "statsig.anthropic.com"]
-  }
+  "tool": "npm:@anthropic-ai/claude-code",
+  "command": "claude",
+  "mounts": [
+    { "src": ".", "dst": "/workspace" },
+    { "src": "~/.local/share/claude", "dst": "/root/.claude" },
+    { "src": "~/.config/claude", "dst": "/root/.config/claude" }
+  ],
+  "env_passthrough": ["TERM", "ANTHROPIC_API_KEY"],
+  "allowed_hosts": ["api.anthropic.com", "statsig.anthropic.com"]
 }
 ```
 

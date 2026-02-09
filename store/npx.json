@@ -1,16 +1,14 @@
 {
-  "npx": {
-    "tool": "node@lts",
-    "command": "npx",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "NODE_ENV"
-    ]
-  }
+  "tool": "node@lts",
+  "command": "npx",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "NODE_ENV"
+  ]
 }

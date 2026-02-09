@@ -1,15 +1,13 @@
 {
-  "rustc": {
-    "tool": "rust",
-    "command": "rustc",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ]
-  }
+  "tool": "rust",
+  "command": "rustc",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ]
 }

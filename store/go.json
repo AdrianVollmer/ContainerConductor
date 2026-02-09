@@ -1,20 +1,18 @@
 {
-  "go": {
-    "tool": "go",
-    "command": "go",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "GOPROXY",
-      "GOPRIVATE"
-    ],
-    "env": {
-      "GOPATH": "/root/go"
+  "tool": "go",
+  "command": "go",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
     }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "GOPROXY",
+    "GOPRIVATE"
+  ],
+  "env": {
+    "GOPATH": "/root/go"
   }
 }

@@ -1,18 +1,16 @@
 {
-  "fd": {
-    "tool": "cargo:fd-find",
-    "command": "fd",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace",
-        "opts": "ro"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "cargo:fd-find",
+  "command": "fd",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace",
+      "opts": "ro"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

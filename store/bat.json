@@ -1,18 +1,16 @@
 {
-  "bat": {
-    "tool": "cargo:bat",
-    "command": "bat",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace",
-        "opts": "ro"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "cargo:bat",
+  "command": "bat",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace",
+      "opts": "ro"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

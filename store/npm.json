@@ -1,16 +1,14 @@
 {
-  "npm": {
-    "tool": "node@lts",
-    "command": "npm",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "NODE_ENV"
-    ]
-  }
+  "tool": "node@lts",
+  "command": "npm",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "NODE_ENV"
+  ]
 }

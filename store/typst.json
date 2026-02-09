@@ -1,20 +1,18 @@
 {
-  "typst": {
-    "tool": "cargo:typst-cli",
-    "command": "typst",
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      },
-      {
-        "src": "~/.local/share/typst",
-        "dst": "/root/.local/share/typst"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "cargo:typst-cli",
+  "command": "typst",
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    },
+    {
+      "src": "~/.local/share/typst",
+      "dst": "/root/.local/share/typst"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }

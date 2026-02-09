@@ -1,18 +1,16 @@
 {
-  "eslint": {
-    "tool": "npm:eslint",
-    "command": "eslint",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace"
-      }
-    ],
-    "env_passthrough": [
-      "TERM",
-      "NODE_ENV"
-    ],
-    "network": "none"
-  }
+  "tool": "npm:eslint",
+  "command": "eslint",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace"
+    }
+  ],
+  "env_passthrough": [
+    "TERM",
+    "NODE_ENV"
+  ],
+  "network": "none"
 }

@@ -1,18 +1,16 @@
 {
-  "tokei": {
-    "tool": "cargo:tokei",
-    "command": "tokei",
-    "isolated": true,
-    "mounts": [
-      {
-        "src": ".",
-        "dst": "/workspace",
-        "opts": "ro"
-      }
-    ],
-    "env_passthrough": [
-      "TERM"
-    ],
-    "network": "none"
-  }
+  "tool": "cargo:tokei",
+  "command": "tokei",
+  "isolated": true,
+  "mounts": [
+    {
+      "src": ".",
+      "dst": "/workspace",
+      "opts": "ro"
+    }
+  ],
+  "env_passthrough": [
+    "TERM"
+  ],
+  "network": "none"
 }
