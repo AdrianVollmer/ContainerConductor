@@ -203,7 +203,7 @@ load_config() {
 # =============================================================================
 
 add_base_args() {
-	PODMAN_ARGS+=(run --rm --init)
+	PODMAN_ARGS+=(run --rm --init --name "coco_${TOOL_NAME}")
 
 	# TTY: only attach interactive terminal when stdin is a tty
 	if [[ -t 0 ]]; then
