@@ -83,6 +83,7 @@ coco up
 | `mounts`          | Array of `{src, dst, opts}` bind mounts                                      |
 | `env`             | Environment variables to set                                                 |
 | `env_passthrough` | Host env vars to pass through                                                |
+| `pre-cmd`         | Shell command to run before the tool (e.g., install dependencies)            |
 | `workdir`         | Working directory in container (defaults to `/workspace`)                    |
 | `network`         | Network mode (`none` to disable)                                             |
 | `allowed_hosts`   | DNS allowlist (enables network with restrictions)                            |

@@ -103,7 +103,12 @@ if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     unset COCO_ALLOWED_HOSTS COCO_UPSTREAM_DNS
 fi
 
-exec mise "$@"
+if [ -n "$COCO_PRE_CMD" ]; then
+    eval "$COCO_PRE_CMD"
+    unset COCO_PRE_CMD
+fi
+
+exec mise -q "$@"
 ENTRYPOINT
 RUN chmod +x /usr/local/bin/coco-entrypoint
 
@@ -297,6 +302,14 @@ add_env_explicit() {
 	done < <(cfg_array '.env // {} | to_entries[] | "\(.key)=\(.value)"')
 }
 
+add_pre_cmd() {
+	local pre_cmd
+	pre_cmd="$(cfg '."pre-cmd" // empty')"
+	if [[ -n "$pre_cmd" ]]; then
+		PODMAN_ARGS+=(-e "COCO_PRE_CMD=$pre_cmd")
+	fi
+}
+
 add_allowed_hosts() {
 	local user_hosts all_hosts
 	user_hosts="$(cfg_array '.allowed_hosts // [] | join(",")')"
@@ -380,6 +393,7 @@ build_podman_args() {
 	add_mounts
 	add_env_passthrough
 	add_env_explicit
+	add_pre_cmd
 	add_allowed_hosts
 	add_ports
 	add_x11
