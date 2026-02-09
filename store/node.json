@@ -1,0 +1,47 @@
+{
+  "node": {
+    "tool": "node@lts",
+    "command": "node",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "NODE_ENV"
+    ],
+    "ports": [
+      "3000:3000"
+    ]
+  },
+  "npm": {
+    "tool": "node@lts",
+    "command": "npm",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "NODE_ENV"
+    ]
+  },
+  "npx": {
+    "tool": "node@lts",
+    "command": "npx",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "NODE_ENV"
+    ]
+  }
+}

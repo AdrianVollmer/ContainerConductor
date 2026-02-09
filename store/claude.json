@@ -1,0 +1,29 @@
+{
+  "claude": {
+    "tool": "npm:@anthropic-ai/claude-code",
+    "command": "claude",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.local/share/claude",
+        "dst": "/root/.claude"
+      },
+      {
+        "src": "~/.config/claude",
+        "dst": "/root/.config/claude"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "ANTHROPIC_API_KEY"
+    ],
+    "allowed_hosts": [
+      "api.anthropic.com",
+      "statsig.anthropic.com",
+      "sentry.io"
+    ]
+  }
+}

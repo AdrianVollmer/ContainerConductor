@@ -64,7 +64,9 @@ ENV CARGO_TARGET_DIR="/root/.local/bin"
 ENV RUSTUP_HOME="/root/.local/share/rustup"
 ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
-RUN mkdir -p /workspace
+RUN mkdir -p \
+    /workspace \
+    /root/.local/bin
 
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh
@@ -458,6 +460,30 @@ cmd_rebuild() {
 	echo "done"
 }
 
+cmd_get() {
+	if [[ $# -lt 1 ]]; then
+		die "usage: $PRODUCT get <name>"
+	fi
+
+	local name="$1"
+	local url="https://raw.githubusercontent.com/AdrianVollmer/ContainerConductor/main/store/${name}.json"
+	local dest="$CONFIG_D_DIR/${name}.json"
+
+	mkdir -p "$CONFIG_D_DIR"
+
+	if [[ -f "$dest" ]]; then
+		die "config already exists: $dest"
+	fi
+
+	echo "Downloading $name..."
+	if curl -fsSL "$url" -o "$dest"; then
+		echo "saved: $dest"
+	else
+		rm -f "$dest"
+		die "failed to download $name (not found or network error)"
+	fi
+}
+
 cmd_help() {
 	cat <<-EOF
 		Usage: $PRODUCT <command> [args...]
@@ -465,6 +491,7 @@ cmd_help() {
 		Commands:
 		  run <tool> [args...]   Run a tool in a container
 		  list                   List all configured tools
+		  get <name>             Download config from the store
 		  up                     Create symlinks for all tools
 		  down                   Remove symlinks for all tools
 		  prune                  Remove mise cache volumes
@@ -535,6 +562,7 @@ main() {
 		run_tool "$@"
 		;;
 	list) cmd_list ;;
+	get) cmd_get "$@" ;;
 	up) cmd_up ;;
 	down) cmd_down ;;
 	prune) cmd_prune ;;

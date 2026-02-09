@@ -1,0 +1,142 @@
+{
+  "cargo": {
+    "tool": "rust",
+    "command": "cargo",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "RUST_BACKTRACE",
+      "RUST_LOG"
+    ]
+  },
+  "rustc": {
+    "tool": "rust",
+    "command": "rustc",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ]
+  },
+  "rustfmt": {
+    "tool": "rust",
+    "command": "rustfmt",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "rg": {
+    "tool": "cargo:ripgrep",
+    "command": "rg",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace",
+        "opts": "ro"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "fd": {
+    "tool": "cargo:fd-find",
+    "command": "fd",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace",
+        "opts": "ro"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "bat": {
+    "tool": "cargo:bat",
+    "command": "bat",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace",
+        "opts": "ro"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "hyperfine": {
+    "tool": "cargo:hyperfine",
+    "command": "hyperfine",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "tokei": {
+    "tool": "cargo:tokei",
+    "command": "tokei",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace",
+        "opts": "ro"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "typst": {
+    "tool": "cargo:typst-cli",
+    "command": "typst",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      },
+      {
+        "src": "~/.local/share/typst",
+        "dst": "/root/.local/share/typst"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  }
+}

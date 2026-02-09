@@ -1,0 +1,50 @@
+{
+  "go": {
+    "tool": "go",
+    "command": "go",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "GOPROXY",
+      "GOPRIVATE"
+    ],
+    "env": {
+      "GOPATH": "/root/go"
+    }
+  },
+  "gofmt": {
+    "tool": "go",
+    "command": "gofmt",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "golangci-lint": {
+    "tool": "go:github.com/golangci/golangci-lint/cmd/golangci-lint",
+    "command": "golangci-lint",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  }
+}

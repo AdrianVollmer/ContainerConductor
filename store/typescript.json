@@ -1,0 +1,17 @@
+{
+  "tsc": {
+    "tool": "npm:typescript",
+    "command": "tsc",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  }
+}

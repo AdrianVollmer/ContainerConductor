@@ -1,0 +1,131 @@
+{
+  "python": {
+    "tool": "python@3",
+    "command": "python",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONPATH"
+    ]
+  },
+  "python3": {
+    "tool": "python@3",
+    "command": "python3",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONPATH"
+    ]
+  },
+  "pip": {
+    "tool": "python@3",
+    "command": "pip",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ]
+  },
+  "uv": {
+    "tool": "uv",
+    "command": "uv",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ]
+  },
+  "uvx": {
+    "tool": "uv",
+    "command": "uvx",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ]
+  },
+  "ruff": {
+    "tool": "uv:ruff",
+    "command": "ruff",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "black": {
+    "tool": "uv:black",
+    "command": "black",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "mypy": {
+    "tool": "uv:mypy",
+    "command": "mypy",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  },
+  "pytest": {
+    "tool": "uv:pytest",
+    "command": "pytest",
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM",
+      "PYTHONPATH"
+    ],
+    "network": "none"
+  }
+}

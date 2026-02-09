@@ -1,0 +1,17 @@
+{
+  "prettier": {
+    "tool": "npm:prettier",
+    "command": "prettier",
+    "isolated": true,
+    "mounts": [
+      {
+        "src": ".",
+        "dst": "/workspace"
+      }
+    ],
+    "env_passthrough": [
+      "TERM"
+    ],
+    "network": "none"
+  }
+}
