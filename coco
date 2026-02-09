@@ -333,6 +333,35 @@ add_workdir() {
 	PODMAN_ARGS+=(-w "$workdir")
 }
 
+add_x11() {
+	if [[ "$(cfg '.x11 // false')" != "true" ]]; then
+		return
+	fi
+
+	# Mount X11 socket
+	if [[ -d /tmp/.X11-unix ]]; then
+		PODMAN_ARGS+=(-v /tmp/.X11-unix:/tmp/.X11-unix)
+	fi
+
+	# Pass through DISPLAY environment variable
+	if [[ -v DISPLAY ]]; then
+		PODMAN_ARGS+=(-e "DISPLAY=${DISPLAY}")
+	fi
+
+	# Handle Xauthority for X11 authentication
+	if [[ -v XAUTHORITY && -f "$XAUTHORITY" ]]; then
+		PODMAN_ARGS+=(
+			-v "$XAUTHORITY:/tmp/.Xauthority:ro"
+			-e "XAUTHORITY=/tmp/.Xauthority"
+		)
+	elif [[ -f "$HOME/.Xauthority" ]]; then
+		PODMAN_ARGS+=(
+			-v "$HOME/.Xauthority:/tmp/.Xauthority:ro"
+			-e "XAUTHORITY=/tmp/.Xauthority"
+		)
+	fi
+}
+
 build_podman_args() {
 	add_base_args
 	add_volumes
@@ -342,6 +371,7 @@ build_podman_args() {
 	add_env_explicit
 	add_allowed_hosts
 	add_ports
+	add_x11
 	add_extra_args
 	add_workdir
 }

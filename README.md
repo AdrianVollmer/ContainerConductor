@@ -83,6 +83,7 @@ create a symlink with the tool's name to the `coco` executable in
 | `allowed_hosts`   | DNS allowlist (enables network with restrictions)                        |
 | `isolated`        | Use separate volumes for this tool (better sandboxing, worse disk usage) |
 | `ports`           | Ports to publish                                                         |
+| `x11`             | Enable X11 support for GUI applications (mounts X11 socket and sets up auth) |
 | `podman_args`     | Extra arguments to pass to podman/docker                                 |
 
 ## Example
