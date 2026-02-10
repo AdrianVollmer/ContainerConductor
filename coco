@@ -56,10 +56,20 @@ FROM docker.io/debian:testing-slim
 COPY --from=uv /uv /uvx /usr/local/bin/
 COPY --from=mise /usr/local/bin/mise /usr/local/bin/
 
+# Install dependencies (node: libatomic and gpg; ruby: findbin, linux-headers, build-essential libssl-dev libyaml-dev zlib1g-dev libffi-dev)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dnsmasq \
     curl \
     ca-certificates \
+    libatomic1 \
+    gpg \
+    libfindbin-libs-perl \
+    linux-headers-$(uname -r) \
+    build-essential \
+    libssl-dev \
+    libyaml-dev \
+    zlib1g-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV MISE_DATA_DIR="/root/.local/share/mise"
@@ -76,7 +86,7 @@ RUN mkdir -p \
     /workspace \
     /root/.local/bin
 
-RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && mv "$CARGO_HOME"/bin/* /root/.local/bin/
 
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh
