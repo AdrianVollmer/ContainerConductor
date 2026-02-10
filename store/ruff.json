@@ -1,5 +1,5 @@
 {
-  "tool": "uv:ruff",
+  "tool": "pipx:ruff",
   "command": "ruff",
   "isolated": true,
   "mounts": [
