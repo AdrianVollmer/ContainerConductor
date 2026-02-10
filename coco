@@ -455,8 +455,15 @@ cmd_down() {
 	for tool in $(list_tools); do
 		local link_path="$bin_dir/$tool"
 		if [[ -L "$link_path" ]]; then
-			rm "$link_path"
-			echo "removed: $tool"
+			local target target_name
+			target="$(readlink "$link_path")"
+			target_name="$(basename "$target")"
+			if [[ "$target_name" == "coco" ]]; then
+				rm "$link_path"
+				echo "removed: $tool"
+			else
+				echo "skip: $tool (symlink does not point to coco)"
+			fi
 		elif [[ -e "$link_path" ]]; then
 			echo "skip: $tool (exists but is not a symlink)"
 		else
