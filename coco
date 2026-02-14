@@ -50,10 +50,26 @@ DEFAULT_ALLOWED_HOSTS=(
 # shellcheck disable=SC2016
 DOCKERFILE='FROM ghcr.io/astral-sh/uv:latest AS uv
 
-FROM ghcr.io/jdx/mise:latest
-COPY --from=uv /uv /uvx /usr/local/bin/
+FROM ghcr.io/jdx/mise:latest AS mise
 
-RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq \
+FROM docker.io/debian:testing-slim
+COPY --from=uv /uv /uvx /usr/local/bin/
+COPY --from=mise /usr/local/bin/mise /usr/local/bin/
+
+# Install dependencies (node: libatomic and gpg; ruby: findbin, linux-headers, build-essential libssl-dev libyaml-dev zlib1g-dev libffi-dev)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dnsmasq \
+    curl \
+    ca-certificates \
+    libatomic1 \
+    gpg \
+    libfindbin-libs-perl \
+    linux-headers-$(uname -r) \
+    build-essential \
+    libssl-dev \
+    libyaml-dev \
+    zlib1g-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV MISE_DATA_DIR="/root/.local/share/mise"
@@ -68,8 +84,7 @@ ENV PATH="/root/.local/bin:/root/.local/share/mise/shims:$GOROOT/bin:$PATH"
 
 RUN mkdir -p \
     /workspace \
-    /root/.local/bin \
-    "$GOROOT"
+    /root/.local/bin
 
 WORKDIR /workspace
 RUN rm -rf /mise
@@ -77,6 +92,8 @@ RUN rm -rf /mise
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
 #!/bin/sh
 set -e
+
+mkdir -p "$GOROOT"
 
 if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     upstream="${COCO_UPSTREAM_DNS:-8.8.8.8}"
@@ -387,6 +404,12 @@ add_x11() {
 	fi
 }
 
+add_debug_env() {
+	if [[ "${COCO_DEBUG:-}" == "true" || "${COCO_DEBUG:-}" == "1" ]]; then
+		PODMAN_ARGS+=(-e "MISE_DEBUG=1")
+	fi
+}
+
 build_podman_args() {
 	add_base_args
 	add_volumes
@@ -394,6 +417,7 @@ build_podman_args() {
 	add_mounts
 	add_env_passthrough
 	add_env_explicit
+	add_debug_env
 	add_pre_cmd
 	add_allowed_hosts
 	add_ports
@@ -442,8 +466,15 @@ cmd_down() {
 	for tool in $(list_tools); do
 		local link_path="$bin_dir/$tool"
 		if [[ -L "$link_path" ]]; then
-			rm "$link_path"
-			echo "removed: $tool"
+			local target target_name
+			target="$(readlink "$link_path")"
+			target_name="$(basename "$target")"
+			if [[ "$target_name" == "coco" ]]; then
+				rm "$link_path"
+				echo "removed: $tool"
+			else
+				echo "skip: $tool (symlink does not point to coco)"
+			fi
 		elif [[ -e "$link_path" ]]; then
 			echo "skip: $tool (exists but is not a symlink)"
 		else
