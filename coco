@@ -141,6 +141,10 @@ MERGED_CONFIG=""
 # Accumulated container runtime arguments
 PODMAN_ARGS=()
 
+# First-run state (set by check_first_run)
+IS_FIRST_RUN=false
+HASHES_DIR="$DATA_DIR/hashes"
+
 # =============================================================================
 # Utility functions
 # =============================================================================
@@ -150,12 +154,38 @@ die() {
 	exit 1
 }
 
+warning() {
+	echo "warning: $*" >&2
+}
+
 cfg() {
 	echo "$TOOL_CONFIG" | jq -r "$1"
 }
 
 cfg_array() {
 	echo "$TOOL_CONFIG" | jq -r "$1"
+}
+
+config_hash() {
+	echo "$TOOL_CONFIG" | cksum | cut -d' ' -f1
+}
+
+check_first_run() {
+	local hash_file="$HASHES_DIR/$TOOL_NAME"
+	local current_hash
+	current_hash="$(config_hash)"
+
+	if [[ -f "$hash_file" ]] && [[ "$(cat "$hash_file")" == "$current_hash" ]]; then
+		IS_FIRST_RUN=false
+	else
+		IS_FIRST_RUN=true
+		warning "First run $TOOL_NAME; expect some delays"
+	fi
+}
+
+save_hash() {
+	mkdir -p "$HASHES_DIR"
+	config_hash >"$HASHES_DIR/$TOOL_NAME"
 }
 
 load_merged_config() {
@@ -266,6 +296,15 @@ add_network() {
 		return
 	fi
 
+	# Allow network on first run if pre-cmd is set (for installing dependencies)
+	if [[ "$IS_FIRST_RUN" == "true" ]]; then
+		local pre_cmd
+		pre_cmd="$(cfg '."pre-cmd" // empty')"
+		if [[ -n "$pre_cmd" ]]; then
+			return
+		fi
+	fi
+
 	local network
 	network="$(cfg '.network // empty')"
 	if [[ -n "$network" ]]; then
@@ -321,6 +360,11 @@ add_env_explicit() {
 }
 
 add_pre_cmd() {
+	# Only run pre-cmd on first run (or config change)
+	if [[ "$IS_FIRST_RUN" != "true" ]]; then
+		return
+	fi
+
 	local pre_cmd
 	pre_cmd="$(cfg '."pre-cmd" // empty')"
 	if [[ -n "$pre_cmd" ]]; then
@@ -578,12 +622,25 @@ run_tool() {
 	check_dependencies
 	ensure_image
 	load_config
+	check_first_run
 	build_podman_args
 
 	local command mise_tool cmd
 	command="$(cfg '.command // empty')"
 	mise_tool="$(cfg '.tool')"
 	cmd="${command:-$TOOL_NAME}"
+
+	# If first run with pre-cmd, don't exec so we can save hash on success
+	local pre_cmd
+	pre_cmd="$(cfg '."pre-cmd" // empty')"
+	if [[ "$IS_FIRST_RUN" == "true" && -n "$pre_cmd" ]]; then
+		"$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$COCO_IMAGE" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
+		local exit_code=$?
+		if [[ $exit_code -eq 0 ]]; then
+			save_hash
+		fi
+		exit $exit_code
+	fi
 
 	exec "$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$COCO_IMAGE" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
 }
