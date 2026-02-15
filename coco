@@ -45,6 +45,9 @@ DEFAULT_ALLOWED_HOSTS=(
 	raw.githubusercontent.com
 	objects.githubusercontent.com
 	codeload.github.com
+	# GPG keyservers
+	keys.openpgp.org
+	keyserver.ubuntu.com
 )
 
 # shellcheck disable=SC2016
@@ -56,20 +59,15 @@ FROM docker.io/debian:testing-slim
 COPY --from=uv /uv /uvx /usr/local/bin/
 COPY --from=mise /usr/local/bin/mise /usr/local/bin/
 
-# Install dependencies (node: libatomic and gpg; ruby: findbin, linux-headers, build-essential libssl-dev libyaml-dev zlib1g-dev libffi-dev)
+# Install base dependencies and mise backends
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dnsmasq \
     curl \
     ca-certificates \
-    libatomic1 \
-    gpg \
-    libfindbin-libs-perl \
-    linux-headers-$(uname -r) \
-    build-essential \
-    libssl-dev \
-    libyaml-dev \
-    zlib1g-dev \
-    libffi-dev \
+    rustc \
+    nodejs \
+    ruby \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 ENV MISE_DATA_DIR="/root/.local/share/mise"
@@ -90,7 +88,7 @@ WORKDIR /workspace
 RUN rm -rf /mise
 
 COPY <<-"ENTRYPOINT" /usr/local/bin/coco-entrypoint
-#!/bin/sh
+#!/bin/bash
 set -e
 
 mkdir -p "$GOROOT"
@@ -121,11 +119,29 @@ if [ -n "$COCO_ALLOWED_HOSTS" ]; then
     unset COCO_ALLOWED_HOSTS COCO_UPSTREAM_DNS
 fi
 
-if [ -n "$COCO_PRE_CMD" ]; then
-    eval "$COCO_PRE_CMD"
-    unset COCO_PRE_CMD
+# Install apt dependencies (cached in /root/.cache/apt)
+if [ -n "$COCO_DEPS_APT" ]; then
+    mkdir -p /root/.cache/apt/archives/partial
+    chown -R _apt:root /root/.cache/apt
+    apt-get update
+    echo "$COCO_DEPS_APT" | tr "," "\n" | xargs \
+        apt-get -o Dir::Cache=/root/.cache/apt \
+                -o Dir::Cache::archives=/root/.cache/apt/archives \
+                install -y --no-install-recommends
+    unset COCO_DEPS_APT
 fi
 
+export MISE_DEBUG=$COCO_DEBUG
+
+# Pre-install mise tools
+if [ -n "$COCO_DEPS_MISE" ]; then
+    echo "$COCO_DEPS_MISE" | tr "," "\n" | while read -r tool; do
+        [ -n "$tool" ] && mise use -g "$tool"
+    done
+    unset COCO_DEPS_MISE
+fi
+
+eval "$(mise activate bash)"
 exec mise -q "$@"
 ENTRYPOINT
 RUN chmod +x /usr/local/bin/coco-entrypoint
@@ -150,12 +166,12 @@ HASHES_DIR="$DATA_DIR/hashes"
 # =============================================================================
 
 die() {
-	echo "error: $*" >&2
+	echo "coco: error: $*" >&2
 	exit 1
 }
 
 warning() {
-	echo "warning: $*" >&2
+	echo "coco: warning: $*" >&2
 }
 
 cfg() {
@@ -179,13 +195,31 @@ check_first_run() {
 		IS_FIRST_RUN=false
 	else
 		IS_FIRST_RUN=true
-		warning "First run $TOOL_NAME; expect some delays"
+		warning "First run of $TOOL_NAME; expect some delays"
 	fi
 }
 
 save_hash() {
 	mkdir -p "$HASHES_DIR"
 	config_hash >"$HASHES_DIR/$TOOL_NAME"
+}
+
+has_dependencies() {
+	# Check explicit dependencies
+	local explicit
+	explicit="$(cfg '.dependencies // empty')"
+	if [[ -n "$explicit" ]]; then
+		return 0
+	fi
+
+	# Check auto-detected dependencies from tool prefix
+	local tool_spec
+	tool_spec="$(cfg '.tool')"
+	case "$tool_spec" in
+	cargo:* | npm:* | pipx:* | uv:* | gem:*) return 0 ;;
+	esac
+
+	return 1
 }
 
 load_merged_config() {
@@ -296,13 +330,9 @@ add_network() {
 		return
 	fi
 
-	# Allow network on first run if pre-cmd is set (for installing dependencies)
-	if [[ "$IS_FIRST_RUN" == "true" ]]; then
-		local pre_cmd
-		pre_cmd="$(cfg '."pre-cmd" // empty')"
-		if [[ -n "$pre_cmd" ]]; then
-			return
-		fi
+	# Allow network on first run if dependencies are needed
+	if [[ "$IS_FIRST_RUN" == "true" ]] && has_dependencies; then
+		return
 	fi
 
 	local network
@@ -359,20 +389,48 @@ add_env_explicit() {
 	done < <(cfg_array '.env // {} | to_entries[] | "\(.key)=\(.value)"')
 }
 
-add_pre_cmd() {
-	# Only run pre-cmd on first run (or config change)
+add_dependencies() {
+	# Only install dependencies on first run (or config change)
 	if [[ "$IS_FIRST_RUN" != "true" ]]; then
 		return
 	fi
 
-	local pre_cmd
-	pre_cmd="$(cfg '."pre-cmd" // empty')"
-	if [[ -n "$pre_cmd" ]]; then
-		PODMAN_ARGS+=(-e "COCO_PRE_CMD=$pre_cmd")
+	local apt_deps mise_deps tool_spec
+	apt_deps="$(cfg_array '.dependencies.apt // [] | join(",")')"
+	mise_deps="$(cfg_array '.dependencies.mise // [] | join(",")')"
+	tool_spec="$(cfg '.tool')"
+
+	# Auto-detect mise backend dependency from tool prefix
+	local auto_dep=""
+	case "$tool_spec" in
+	cargo:*) auto_dep="rust" ;;
+	npm:*) auto_dep="node" ;;
+	pipx:* | uv:*) auto_dep="python" ;;
+	gem:*) auto_dep="ruby" ;;
+	esac
+
+	if [[ -n "$auto_dep" ]]; then
+		if [[ -n "$mise_deps" ]]; then
+			mise_deps="$auto_dep,$mise_deps"
+		else
+			mise_deps="$auto_dep"
+		fi
+	fi
+
+	if [[ -n "$apt_deps" ]]; then
+		PODMAN_ARGS+=(-e "COCO_DEPS_APT=$apt_deps")
+	fi
+	if [[ -n "$mise_deps" ]]; then
+		PODMAN_ARGS+=(-e "COCO_DEPS_MISE=$mise_deps")
 	fi
 }
 
 add_allowed_hosts() {
+	# Skip DNS filtering on first run - need full network for dependencies
+	if [[ "$IS_FIRST_RUN" == "true" ]] && has_dependencies; then
+		return
+	fi
+
 	local user_hosts all_hosts
 	user_hosts="$(cfg_array '.allowed_hosts // [] | join(",")')"
 	if [[ -n "$user_hosts" ]]; then
@@ -462,7 +520,7 @@ build_podman_args() {
 	add_env_passthrough
 	add_env_explicit
 	add_debug_env
-	add_pre_cmd
+	add_dependencies
 	add_allowed_hosts
 	add_ports
 	add_x11
@@ -630,14 +688,14 @@ run_tool() {
 	mise_tool="$(cfg '.tool')"
 	cmd="${command:-$TOOL_NAME}"
 
-	# If first run with pre-cmd, don't exec so we can save hash on success
-	local pre_cmd
-	pre_cmd="$(cfg '."pre-cmd" // empty')"
-	if [[ "$IS_FIRST_RUN" == "true" && -n "$pre_cmd" ]]; then
+	# If first run with dependencies, don't exec so we can save hash on success
+	if [[ "$IS_FIRST_RUN" == "true" ]] && has_dependencies; then
 		"$COCO_RUNTIME" "${PODMAN_ARGS[@]}" "$COCO_IMAGE" x "$mise_tool" -- "$cmd" "${REMAINING_ARGS[@]}"
 		local exit_code=$?
 		if [[ $exit_code -eq 0 ]]; then
 			save_hash
+		else
+			warning "$TOOL_NAME returned a non-zero exit code; next run will al    so be considered first run"
 		fi
 		exit $exit_code
 	fi
