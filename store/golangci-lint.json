@@ -1,7 +1,6 @@
 {
   "tool": "go:github.com/golangci/golangci-lint/cmd/golangci-lint",
   "command": "golangci-lint",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

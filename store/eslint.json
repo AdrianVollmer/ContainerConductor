@@ -1,7 +1,6 @@
 {
   "tool": "npm:eslint",
   "command": "eslint",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

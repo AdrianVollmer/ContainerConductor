@@ -1,7 +1,6 @@
 {
   "tool": "cargo:fd-find",
   "command": "fd",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

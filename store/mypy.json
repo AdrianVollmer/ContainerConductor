@@ -1,7 +1,6 @@
 {
   "tool": "pipx:mypy",
   "command": "mypy",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

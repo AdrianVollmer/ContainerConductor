@@ -1,7 +1,6 @@
 {
   "tool": "cargo:bat",
   "command": "bat",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

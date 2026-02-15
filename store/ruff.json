@@ -1,7 +1,6 @@
 {
   "tool": "pipx:ruff",
   "command": "ruff",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

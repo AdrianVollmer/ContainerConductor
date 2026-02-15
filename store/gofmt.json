@@ -1,7 +1,6 @@
 {
   "tool": "go",
   "command": "gofmt",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

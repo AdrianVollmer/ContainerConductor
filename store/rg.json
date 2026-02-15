@@ -1,7 +1,6 @@
 {
   "tool": "cargo:ripgrep",
   "command": "rg",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

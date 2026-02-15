@@ -1,7 +1,6 @@
 {
   "tool": "rust",
   "command": "rustfmt",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

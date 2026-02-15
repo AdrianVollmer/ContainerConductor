@@ -1,7 +1,6 @@
 {
   "tool": "npm:typescript",
   "command": "tsc",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

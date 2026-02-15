@@ -1,7 +1,6 @@
 {
   "tool": "npm:prettier",
   "command": "prettier",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

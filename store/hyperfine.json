@@ -1,7 +1,6 @@
 {
   "tool": "cargo:hyperfine",
   "command": "hyperfine",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",

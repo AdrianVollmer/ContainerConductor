@@ -2,7 +2,6 @@
   "tool": "cargo:tokei",
   "command": "tokei",
   "pre-cmd": "mise -q use -g rust",
-  "isolated": true,
   "mounts": [
     {
       "src": ".",
